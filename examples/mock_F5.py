@@ -40,7 +40,8 @@ class command_passwd(SSHCommand):
 def main():
     commands['passwd'] = command_passwd
     users = {'testadmin': 'x'}
-    runServer(prompt="[root@hostname:Active] testadmin # ",
+    runServer(commands,
+              prompt="[root@hostname:Active] testadmin # ",
               **users)
         
 if __name__ == "__main__":

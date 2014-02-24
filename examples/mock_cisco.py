@@ -89,7 +89,7 @@ def main():
     commands['wr'] = command_wr
     commands['username'] = command_username
     users = {'testadmin': 'x'}
-    runServer(prompt="hostname>", **users)
+    runServer(commands, prompt="hostname>", **users)
 
 if __name__ == "__main__":
     try:

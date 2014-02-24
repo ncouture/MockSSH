@@ -297,7 +297,7 @@ def getRSAKeys(keypath="."):
 class SSHServerError(Exception):
     pass
     
-def runServer(prompt="$ ", keypath=".", **users):
+def runServer(commands, prompt="$ ", keypath=".", port=2222, **users):
     if not users:
         raise SSHServerError("You must provide at least one "
                              "username/password combination "
@@ -314,7 +314,7 @@ def runServer(prompt="$ ", keypath=".", **users):
     sshFactory.privateKeys = {'ssh-rsa':
                               keys.Key.fromString(data=privKeyString)}
 
-    reactor.listenTCP(2222, sshFactory)
+    reactor.listenTCP(port, sshFactory)
     reactor.run()
 
 commands = {'_exit': command_exit,
@@ -323,4 +323,4 @@ commands = {'_exit': command_exit,
 
 if __name__ == "__main__":
     users = {'root': 'x'}
-    runServer(**users)
+    runServer(commands, **users)
