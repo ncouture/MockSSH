@@ -91,7 +91,7 @@ class SSHShell(object):
             cmdAndArgs = shlex.split(line)
         except:
             self.protocol.writeln(
-                '-bash: syntax error: unexpected end of file')
+                'MockSSH: syntax error: unexpected end of file')
             self.cmdpending = []
             self.showPrompt()
             return
@@ -119,7 +119,7 @@ class SSHShell(object):
         else:
             print 'Command not found: %s' % (line,)
             if len(line):
-                self.protocol.writeln('bash: %s: command not found' % cmd)
+                self.protocol.writeln('MockSSH: %s: command not found' % cmd)
                 runOrPrompt()
 
     def resume(self):
@@ -185,8 +185,9 @@ class SSHProtocol(recvline.HistoricRecvLine):
             self.lineBuffer.insert(self.lineBufferIndex, ch)
         else:
             self.lineBuffer[self.lineBufferIndex:self.lineBufferIndex+1] = [ch]
+        
         self.lineBufferIndex += 1
-        if not self.password_input: 
+        if not self.password_input:
             self.terminal.write(ch)
 
     def writeln(self, data):
