@@ -1,5 +1,4 @@
 #!/usr/bin/python
-#
 
 import sys
 import os
@@ -111,7 +110,7 @@ class SSHShell(object):
         rargs = []
         for arg in args:
             rargs.append(arg)
-    
+
         cmdclass = self.protocol.getCommand(cmd)
         if cmdclass:
             print 'Command found: %s' % (line,)
@@ -123,7 +122,6 @@ class SSHShell(object):
                 runOrPrompt()
 
     def resume(self):
-        self.protocol.setInsertMode()
         self.runCommand()
 
     def showPrompt(self):
@@ -142,7 +140,7 @@ class SSHProtocol(recvline.HistoricRecvLine):
         self.cmdstack = []
         self.user = user
         self.prompt = prompt
-        
+
     def connectionMade(self):
         recvline.HistoricRecvLine.connectionMade(self)
         self.cmdstack = [SSHShell(self, self.prompt)]
@@ -164,9 +162,9 @@ class SSHProtocol(recvline.HistoricRecvLine):
         recvline.HistoricRecvLine.connectionLost(self, reason)
         del self.commands
 
-    # Overriding to prevent terminal.reset()
+    # Overriding to prevent terminal.reset() and setInsertMode()
     def initializeScreen(self):
-        self.setInsertMode()
+        pass
 
     def getCommand(self, cmd):
         if cmd in self.commands:
@@ -181,12 +179,9 @@ class SSHProtocol(recvline.HistoricRecvLine):
 
     # Easier way to implement password input?
     def characterReceived(self, ch, moreCharactersComing):
-        if self.mode == 'insert':
-            self.lineBuffer.insert(self.lineBufferIndex, ch)
-        else:
-            self.lineBuffer[self.lineBufferIndex:self.lineBufferIndex+1] = [ch]
-        
+        self.lineBuffer[self.lineBufferIndex:self.lineBufferIndex+1] = [ch]
         self.lineBufferIndex += 1
+
         if not self.password_input:
             self.terminal.write(ch)
 
@@ -197,7 +192,6 @@ class SSHProtocol(recvline.HistoricRecvLine):
     def call_command(self, cmd, *args):
         obj = cmd(self, *args)
         self.cmdstack.append(obj)
-        self.setTypeoverMode()
         obj.start()
 
     def handle_RETURN(self):
@@ -249,7 +243,7 @@ class SSHRealm:
 
     def __init__(self, prompt):
         self.prompt = prompt
-    
+
     def requestAvatar(self, avatarId, mind, *interfaces):
         if conchinterfaces.IConchUser in interfaces:
             return interfaces[0], SSHAvatar(avatarId, self.prompt), lambda: None
@@ -271,13 +265,13 @@ def getRSAKeys(keypath="."):
 
     pubkey = os.path.join(keypath, "public.key")
     privkey = os.path.join(keypath, "private.key")
-    
+
     if not (os.path.exists(pubkey) and os.path.exists(privkey)):
         sys.stdout.write("Generating RSA keypair... ")
 
         from Crypto.PublicKey import RSA
         from twisted.python import randbytes
-        
+
         KEY_LENGTH = 1024
 
         rsaKey = RSA.generate(KEY_LENGTH, randbytes.secureRandom)
@@ -297,13 +291,13 @@ def getRSAKeys(keypath="."):
 
 class SSHServerError(Exception):
     pass
-    
+
 def runServer(commands, prompt="$ ", keypath=".", port=2222, **users):
     if not users:
         raise SSHServerError("You must provide at least one "
                              "username/password combination "
                              "to run this SSH server.")
-        
+
     sshFactory = factory.SSHFactory()
     sshFactory.portal = portal.Portal(SSHRealm(prompt=prompt))
     sshFactory.portal.registerChecker(
@@ -318,8 +312,9 @@ def runServer(commands, prompt="$ ", keypath=".", port=2222, **users):
     reactor.listenTCP(port, sshFactory)
     reactor.run()
 
-commands = {'_exit': command_exit,
-            'clear': command_clear,
+commands = {
+    '_exit': command_exit,
+    'clear': command_clear,
 }
 
 if __name__ == "__main__":
