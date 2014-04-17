@@ -84,6 +84,7 @@ class command_username(SSHCommand):
 
 def main():
     commands['en'] = command_en
+    commands['enable'] = command_en
     commands['conf'] = command_conf
     commands['exit'] = command_exit
     commands['wr'] = command_wr
