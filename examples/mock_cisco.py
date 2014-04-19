@@ -56,7 +56,7 @@ class command_exit(SSHCommand):
         if 'config' in self.protocol.prompt:
             self.protocol.prompt = "hostname#"
         else:
-            self.protocol.commands['_exit']()
+            self.protocol.call_command(self.protocol.commands['_exit'])
 
         self.exit()
 
