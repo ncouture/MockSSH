@@ -1,19 +1,20 @@
 #!/usr/bin/python
+#
 
 import sys
 import os
 import shlex
-import random
 
-from copy import copy
 from twisted.cred import portal, checkers
 from twisted.conch import avatar, recvline, interfaces as conchinterfaces
-from twisted.conch.ssh import factory, keys, session
+from twisted.conch.ssh import factory, keys, session, userauth, connection
 from twisted.conch.insults import insults
 from twisted.internet import reactor
+
 from zope.interface import implements
 
-__all__ = ["SSHCommand", "commands", "runServer"]
+__all__ = ["SSHCommand", "runServer"]
+
 
 class SSHCommand(object):
     """
@@ -55,6 +56,7 @@ class SSHCommand(object):
 
     def resume(self):
         pass
+
 
 class SSHShell(object):
     def __init__(self, protocol, prompt):
@@ -133,13 +135,14 @@ class SSHShell(object):
         self.protocol.terminal.nextLine()
         self.showPrompt()
 
+
 class SSHProtocol(recvline.HistoricRecvLine):
-    def __init__(self, user, prompt):
+    def __init__(self, user, prompt, commands):
+        self.user = user
+        self.prompt = prompt
         self.commands = commands
         self.password_input = False
         self.cmdstack = []
-        self.user = user
-        self.prompt = prompt
 
     def connectionMade(self):
         recvline.HistoricRecvLine.connectionMade(self)
@@ -169,10 +172,6 @@ class SSHProtocol(recvline.HistoricRecvLine):
     def getCommand(self, cmd):
         if cmd in self.commands:
             return self.commands[cmd]
-
-    def lineReceived(self, line):
-        if len(self.cmdstack):
-            self.cmdstack[-1].lineReceived(line)
 
     def keystrokeReceived(self, keyID, modifier):
         recvline.HistoricRecvLine.keystrokeReceived(self, keyID, modifier)
@@ -214,18 +213,25 @@ class SSHProtocol(recvline.HistoricRecvLine):
     def handle_CTRL_D(self):
         self.call_command(self.commands['_exit'])
 
+
 class SSHAvatar(avatar.ConchUser):
     implements(conchinterfaces.ISession)
 
-    def __init__(self, username, prompt):
+    def __init__(self, user, prompt, commands):
         avatar.ConchUser.__init__(self)
-        self.username = username
-        self.prompt = prompt
 
-        self.channelLookup.update({'session':session.SSHSession})
+        self.user = user
+        self.prompt = prompt
+        self.commands = commands
+
+        self.channelLookup.update({'session': session.SSHSession})
 
     def openShell(self, protocol):
-        serverProtocol = insults.ServerProtocol(SSHProtocol, self, self.prompt)
+        serverProtocol = insults.ServerProtocol(SSHProtocol,
+                                                self,
+                                                self.prompt,
+                                                self.commands)
+
         serverProtocol.makeConnection(protocol)
         protocol.makeConnection(session.wrapProtocol(serverProtocol))
 
@@ -238,25 +244,26 @@ class SSHAvatar(avatar.ConchUser):
     def closed(self):
         pass
 
+
 class SSHRealm:
     implements(portal.IRealm)
 
-    def __init__(self, prompt):
+    def __init__(self, prompt, commands):
         self.prompt = prompt
+        self.commands = commands
 
     def requestAvatar(self, avatarId, mind, *interfaces):
         if conchinterfaces.IConchUser in interfaces:
-            return interfaces[0], SSHAvatar(avatarId, self.prompt), lambda: None
+            return interfaces[0], SSHAvatar(
+                avatarId, self.prompt, self.commands), lambda: None
         else:
-            raise Exception, "No supported interfaces found."
+            raise Exception("No supported interfaces found.")
+
 
 class command_exit(SSHCommand):
     def call(self):
         self.protocol.terminal.loseConnection()
 
-class command_clear(SSHCommand):
-    def call(self):
-        self.protocol.terminal.reset()
 
 def getRSAKeys(keypath="."):
     if not os.path.exists(keypath):
@@ -289,34 +296,55 @@ def getRSAKeys(keypath="."):
 
     return publicKeyString, privateKeyString
 
+
 class SSHServerError(Exception):
     pass
 
-def runServer(commands, prompt="$ ", keypath=".", port=2222, **users):
+
+def runServer(commands,
+              prompt="$ ",
+              keypath=".",
+              interface='',
+              port=2222,
+              **users):
+
     if not users:
         raise SSHServerError("You must provide at least one "
                              "username/password combination "
                              "to run this SSH server.")
 
+    for exit_cmd in ['_exit', 'exit']:
+        if not exit_cmd in commands:
+            commands[exit_cmd] = command_exit
+
     sshFactory = factory.SSHFactory()
-    sshFactory.portal = portal.Portal(SSHRealm(prompt=prompt))
+
+    sshFactory.portal = portal.Portal(
+        SSHRealm(prompt=prompt, commands=commands)
+    )
     sshFactory.portal.registerChecker(
-        checkers.InMemoryUsernamePasswordDatabaseDontUse(**users))
+        checkers.InMemoryUsernamePasswordDatabaseDontUse(**users)
+    )
 
     pubKeyString, privKeyString = getRSAKeys(keypath)
-    sshFactory.publicKeys = {'ssh-rsa':
-                             keys.Key.fromString(data=pubKeyString)}
-    sshFactory.privateKeys = {'ssh-rsa':
-                              keys.Key.fromString(data=privKeyString)}
 
-    reactor.listenTCP(port, sshFactory)
+    sshFactory.publicKeys = {
+        'ssh-rsa': keys.Key.fromString(data=pubKeyString)
+    }
+    sshFactory.privateKeys = {
+        'ssh-rsa': keys.Key.fromString(data=privKeyString)
+    }
+    sshFactory.services = {
+        'ssh-userauth': userauth.SSHUserAuthServer,
+        'ssh-connection': connection.SSHConnection
+    }
+
+    reactor.listenTCP(port,
+                      sshFactory,
+                      interface=interface)
     reactor.run()
-
-commands = {
-    '_exit': command_exit,
-    'clear': command_clear,
-}
 
 if __name__ == "__main__":
     users = {'root': 'x'}
+    commands = {'exit': command_exit}
     runServer(commands, **users)
