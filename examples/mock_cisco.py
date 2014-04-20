@@ -16,9 +16,13 @@ Building configuration...
 hostname#
 """
 
-from mockSSH import SSHCommand, commands, runServer
+import sys
+import MockSSH
 
-class command_en(SSHCommand):
+from twisted.python import log
+
+
+class command_en(MockSSH.SSHCommand):
     def start(self):
         self.this_password = "1234"
         self.password = ""
@@ -32,7 +36,7 @@ class command_en(SSHCommand):
                 self.protocol.prompt = "hostname#"
                 self.protocol.password_input = False
             else:
-                self.writeln("mockSSH: password is %s" %
+                self.writeln("MockSSH: password is %s" %
                              self.this_password)
                 self.protocol.password_input = False
             self.exit()
@@ -41,17 +45,19 @@ class command_en(SSHCommand):
         self.password = line.strip()
         self.callbacks.pop(0)()
 
-class command_conf(SSHCommand):
+
+class command_conf(MockSSH.SSHCommand):
     def start(self):
         if (not len(self.args) == 1) or (not self.args[0] == 't'):
-            self.writeln("mockSSH: Supported usage: conf t")
+            self.writeln("MockSSH: Supported usage: conf t")
         else:
             self.writeln("Enter configuration commands, one per line. End "
                          "with CNTL/Z")
             self.protocol.prompt = "hostname(config)#"
         self.exit()
 
-class command_exit(SSHCommand):
+
+class command_exit(MockSSH.SSHCommand):
     def start(self):
         if 'config' in self.protocol.prompt:
             self.protocol.prompt = "hostname#"
@@ -60,37 +66,50 @@ class command_exit(SSHCommand):
 
         self.exit()
 
-class command_wr(SSHCommand):
+
+class command_wr(MockSSH.SSHCommand):
     def start(self):
         if not len(self.args) == 1 or not self.args[0] == 'm':
-            self.writeln("mockSSH: Supported usage: wr m")
+            self.writeln("MockSSH: Supported usage: wr m")
         else:
             self.writeln("Building configuration...")
             self.writeln("[OK]")
 
         self.exit()
 
-class command_username(SSHCommand):
+
+class command_username(MockSSH.SSHCommand):
     def start(self):
         if not 'config' in self.protocol.prompt:
-            self.writeln("mockSSH: Please run the username command in `conf t'")
+            self.writeln(
+                "MockSSH: Please run the username command in `conf t'")
 
-        if (not len(self.args) == 3 or
-            not self.args[1] == 'password'):
-            self.writeln("mockSSH: Supported usage: username "
+        if (not len(self.args) == 3 or not self.args[1] == 'password'):
+            self.writeln("MockSSH: Supported usage: username "
                          "<username> password <password>")
 
         self.exit()
 
+
 def main():
-    commands['en'] = command_en
-    commands['enable'] = command_en
-    commands['conf'] = command_conf
-    commands['exit'] = command_exit
-    commands['wr'] = command_wr
-    commands['username'] = command_username
+    commands = {
+        'en': command_en,
+        'enable': command_en,
+        'conf': command_conf,
+        'username': command_username,
+        'wr': command_wr,
+        'exit': command_exit
+    }
+
     users = {'testadmin': 'x'}
-    runServer(commands, prompt="hostname>", **users)
+
+    log.startLogging(sys.stderr)
+
+    MockSSH.runServer(commands,
+                      prompt="hostname>",
+                      interface='127.0.0.1',
+                      port=9999,
+                      **users)
 
 if __name__ == "__main__":
     try:
