@@ -13,7 +13,7 @@ from twisted.internet import reactor
 
 from zope.interface import implements
 
-__all__ = ["SSHCommand", "runServer"]
+__all__ = ["SSHCommand", "PasswordPromptingCommand", "runServer"]
 
 
 class SSHCommand(object):
@@ -56,6 +56,61 @@ class SSHCommand(object):
 
     def resume(self):
         pass
+
+
+class PasswordPromptingCommand(SSHCommand):
+    def __init__(self,
+                 password,
+                 password_prompt,
+                 success_callbacks=[],
+                 failure_callbacks=[]):
+        self.valid_password = password
+        self.password_prompt = password_prompt
+        self.success_callbacks = success_callbacks
+        self.failure_callbacks = failure_callbacks
+
+        self.protocol = None  # protocol is set by __call__
+
+    def __call__(self, protocol, *args):
+        SSHCommand.__init__(self, protocol, *args)
+        return self
+
+    def start(self):
+        self.password = ""
+        self.write(self.password_prompt)
+        self.protocol.password_input = True
+        self.callbacks = [self.validate_password]
+
+    def lineReceived(self, line):
+        self.password = line.strip()
+        self.callbacks.pop(0)()
+
+    def validate_password(self):
+        if self.password:
+            if self.password == self.valid_password:
+                if self.success_callbacks:
+                    self.success_callbacks.pop(0)(self)
+                self.protocol.password_input = False
+            else:
+                if self.failure_callbacks:
+                    self.failure_callbacks.pop(0)(self)
+                #self.
+                self.protocol.password_input = False
+            self.exit()
+
+
+class ArgumentValidatingCommand(SSHCommand):
+    def __init__(self, argument_validator):
+        """argument_validator: callback"""
+        self.argument_validator = argument_validator
+        self.protocol = None  # set in __call__
+
+    def __call__(self, protocol, *args):
+        SSHCommand.__init__(self, protocol, *args)
+        return self
+
+    def start(self):
+        self.argument_validator(self)
 
 
 class SSHShell(object):
@@ -198,7 +253,7 @@ class SSHProtocol(recvline.HistoricRecvLine):
             if self.lineBuffer:
                 self.historyLines.append(''.join(self.lineBuffer))
             self.historyPosition = len(self.historyLines)
-        return recvline.RecvLine.handle_RETURN(self)
+        return recvline.HistoricRecvLine.handle_RETURN(self)
 
     def handle_CTRL_C(self):
         self.cmdstack[-1].ctrl_c()
