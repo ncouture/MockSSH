@@ -22,39 +22,31 @@ import MockSSH
 from twisted.python import log
 
 
-class command_en(MockSSH.SSHCommand):
-    def start(self):
-        self.this_password = "1234"
-        self.password = ""
-        self.write("Password: ")
-        self.protocol.password_input = True
-        self.callbacks = [self.validatePassword]
-
-    def validatePassword(self):
-        if self.password:
-            if self.password == self.this_password:
-                self.protocol.prompt = "hostname#"
-                self.protocol.password_input = False
-            else:
-                self.writeln("MockSSH: password is %s" %
-                             self.this_password)
-                self.protocol.password_input = False
-            self.exit()
-
-    def lineReceived(self, line):
-        self.password = line.strip()
-        self.callbacks.pop(0)()
-
-
-class command_conf(MockSSH.SSHCommand):
-    def start(self):
-        if (not len(self.args) == 1) or (not self.args[0] == 't'):
-            self.writeln("MockSSH: Supported usage: conf t")
-        else:
-            self.writeln("Enter configuration commands, one per line. End "
+def conf_argument_validator(instance):
+    if (not len(instance.args) == 1) or (not instance.args[0] == 't'):
+        instance.writeln("MockSSH: Supported usage: conf t")
+    else:
+        instance.writeln("Enter configuration commands, one per line. End "
                          "with CNTL/Z")
-            self.protocol.prompt = "hostname(config)#"
-        self.exit()
+        instance.protocol.prompt = "hostname(config)#"
+    instance.exit()
+
+
+def en_change_protocol_prompt(instance):
+    instance.protocol.prompt = "hostname #"
+    instance.protocol.password_input = False
+
+
+def en_write_password_to_transport(instance):
+    instance.writeln("MockSSH: password is %s" % instance.valid_password)
+
+
+command_conf = MockSSH.ArgumentValidatingCommand(conf_argument_validator)
+command_en = MockSSH.PasswordPromptingCommand(
+    password='1234',
+    password_prompt="Password: ",
+    success_callbacks=[en_change_protocol_prompt],
+    failure_callbacks=[en_write_password_to_transport])
 
 
 class command_exit(MockSSH.SSHCommand):
