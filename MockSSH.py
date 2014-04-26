@@ -13,7 +13,10 @@ from twisted.internet import reactor
 
 from zope.interface import implements
 
-__all__ = ["SSHCommand", "PasswordPromptingCommand", "runServer"]
+__all__ = ["SSHCommand",
+           "PasswordPromptingCommand",
+           "ArgumentValidatingCommand",
+           "runServer"]
 
 
 class SSHCommand(object):
@@ -76,27 +79,20 @@ class PasswordPromptingCommand(SSHCommand):
         return self
 
     def start(self):
-        self.password = ""
         self.write(self.password_prompt)
         self.protocol.password_input = True
-        self.callbacks = [self.validate_password]
 
     def lineReceived(self, line):
-        self.password = line.strip()
-        self.callbacks.pop(0)()
+        self.validate_password(line.strip())
 
-    def validate_password(self):
-        if self.password:
-            if self.password == self.valid_password:
-                if self.success_callbacks:
-                    self.success_callbacks.pop(0)(self)
-                self.protocol.password_input = False
-            else:
-                if self.failure_callbacks:
-                    self.failure_callbacks.pop(0)(self)
-                #self.
-                self.protocol.password_input = False
-            self.exit()
+    def validate_password(self, password):
+        if password == self.valid_password:
+            [func(self) for func in self.success_callbacks]
+        else:
+            [func(self) for func in self.failure_callbacks]
+
+        self.protocol.password_input = False
+        self.exit()
 
 
 class ArgumentValidatingCommand(SSHCommand):
