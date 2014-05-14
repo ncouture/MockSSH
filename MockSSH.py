@@ -352,6 +352,12 @@ class SSHServerError(Exception):
     pass
 
 
+class MockSSHError(Exception):
+    """Raised by MockSSH scripts.
+    """
+    pass
+
+
 def runServer(commands,
               prompt="$ ",
               keypath=".",
