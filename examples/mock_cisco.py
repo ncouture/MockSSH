@@ -41,7 +41,24 @@ def en_write_password_to_transport(instance):
     instance.writeln("MockSSH: password is %s" % instance.valid_password)
 
 
-command_conf = MockSSH.ArgumentValidatingCommand(conf_argument_validator)
+def conf_output_error(instance):
+    instance.writeln("MockSSH: supported usage: conf t")
+
+
+def conf_output_success(instance):
+    instance.writeln("Enter configuration commands, one per line. End "
+                     "with CNTL/Z")
+
+
+def conf_change_protocol_prompt(instance):
+    instance.protocol.prompt = "hostname(config)#"
+
+
+command_conf = MockSSH.ArgumentValidatingCommand(
+    [conf_output_success, conf_change_protocol_prompt],
+    [conf_output_error],
+    *["t"])
+
 command_en = MockSSH.PasswordPromptingCommand(
     password='1234',
     password_prompt="Password: ",

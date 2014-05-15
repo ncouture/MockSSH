@@ -96,9 +96,13 @@ class PasswordPromptingCommand(SSHCommand):
 
 
 class ArgumentValidatingCommand(SSHCommand):
-    def __init__(self, argument_validator):
-        """argument_validator: callback"""
-        self.argument_validator = argument_validator
+    def __init__(self,
+                 success_callbacks,
+                 failure_callbacks,
+                 *args):
+        self.success_callbacks = success_callbacks
+        self.failure_callbacks = failure_callbacks
+        self.required_arguments = args
         self.protocol = None  # set in __call__
 
     def __call__(self, protocol, *args):
@@ -106,7 +110,11 @@ class ArgumentValidatingCommand(SSHCommand):
         return self
 
     def start(self):
-        self.argument_validator(self)
+        if not tuple(self.args) == tuple(self.required_arguments):
+            [func(self) for func in self.failure_callbacks]
+        else:
+            [func(self) for func in self.success_callbacks]
+        self.exit()
 
 
 class SSHShell(object):
