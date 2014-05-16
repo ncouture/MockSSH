@@ -8,6 +8,8 @@ from twisted.python import log
 
 
 class command_passwd(MockSSH.SSHCommand):
+    name = 'passwd'
+
     def start(self):
         self.passwords = []
         if len(self.args) == 1:
@@ -44,7 +46,7 @@ class command_passwd(MockSSH.SSHCommand):
 
 
 def main():
-    commands = {'passwd': command_passwd}
+    commands = [command_passwd]
     users = {'testadmin': 'x'}
 
     log.startLogging(sys.stderr)

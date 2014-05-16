@@ -22,16 +22,6 @@ import MockSSH
 from twisted.python import log
 
 
-def conf_argument_validator(instance):
-    if (not len(instance.args) == 1) or (not instance.args[0] == 't'):
-        instance.writeln("MockSSH: Supported usage: conf t")
-    else:
-        instance.writeln("Enter configuration commands, one per line. End "
-                         "with CNTL/Z")
-        instance.protocol.prompt = "hostname(config)#"
-    instance.exit()
-
-
 def en_change_protocol_prompt(instance):
     instance.protocol.prompt = "hostname #"
     instance.protocol.password_input = False
@@ -55,11 +45,13 @@ def conf_change_protocol_prompt(instance):
 
 
 command_conf = MockSSH.ArgumentValidatingCommand(
+    'conf',
     [conf_output_success, conf_change_protocol_prompt],
     [conf_output_error],
     *["t"])
 
 command_en = MockSSH.PasswordPromptingCommand(
+    name='en',
     password='1234',
     password_prompt="Password: ",
     success_callbacks=[en_change_protocol_prompt],
@@ -67,6 +59,8 @@ command_en = MockSSH.PasswordPromptingCommand(
 
 
 class command_exit(MockSSH.SSHCommand):
+    name = "exit"
+
     def start(self):
         if 'config' in self.protocol.prompt:
             self.protocol.prompt = "hostname#"
@@ -77,6 +71,8 @@ class command_exit(MockSSH.SSHCommand):
 
 
 class command_wr(MockSSH.SSHCommand):
+    name = 'wr'
+
     def start(self):
         if not len(self.args) == 1 or not self.args[0] == 'm':
             self.writeln("MockSSH: Supported usage: wr m")
@@ -88,6 +84,8 @@ class command_wr(MockSSH.SSHCommand):
 
 
 class command_username(MockSSH.SSHCommand):
+    name = 'username'
+
     def start(self):
         if not 'config' in self.protocol.prompt:
             self.writeln(
@@ -101,14 +99,11 @@ class command_username(MockSSH.SSHCommand):
 
 
 def main():
-    commands = {
-        'en': command_en,
-        'enable': command_en,
-        'conf': command_conf,
-        'username': command_username,
-        'wr': command_wr,
-        'exit': command_exit
-    }
+    commands = [command_en,
+                command_conf,
+                command_username,
+                command_wr,
+                command_exit]
 
     users = {'testadmin': 'x'}
 
