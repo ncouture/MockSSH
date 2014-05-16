@@ -1,0 +1,72 @@
+ssh-server:
+  users:
+    testuser: x
+    testadmin: x
+  host: 127.0.0.1
+  port: 2222
+  prompt: "hostname>"
+  keypath: "."
+
+# command types: 
+#     prompt: `output prompt expecting `input
+#     command: can output, validate `args, and modify MockSSH internals
+#
+# configurations:
+#     args: - forces the use of argument list (* is a wildcard)
+#
+# actions:
+#     write: writes specified value to the terminal
+#     set-prompt: sets the shell prompt to specified value 
+#     call-command: calls self.protocol.call_command(self.protocol.commands[command])
+#     prompt-match: executes an action if the prompt matches the pattern
+#                   specified, it also supports a conditional action with 'else'
+#     
+#
+# callbacks:
+#     on-success: executes a list of action(s)
+#     on-failure: executes a list of action(s)
+#
+
+commands:
+  en:
+    type: prompt
+    output: "Password: "
+    input: x
+    on-success:
+      - set-prompt: "hostname#"
+    on-failure:
+      - write: "Password is `x'"
+  conf:
+    type: command
+    args: ["t"]
+    on-success:
+      - write: "Enter configuration commands, one per line. End with CNTL/Z"
+      - set-prompt: "hostname(config)#"
+    on-failure: 
+      - write: "MockSSH: supported usage: conf t"
+  exit:
+    type: command
+    prompt-match:
+      - match: "hostname(config)#"
+      - set-prompt: "hostname#"
+      - else:
+          call-command: "_exit"
+  wr:
+    type: command
+    args: ["m"]
+
+    on-success:
+      - write: "Building configuration..."
+      - write: "[OK]"
+    on-failure:
+      - write: 'MockSSH: supported usage: wr m'
+  username:
+    type: command
+    args: ["*", "password", "*"]
+
+    prompt-match:
+        - mismatch: "hostname(config)#"
+        - write: 'MockSSH: Please run the username command "conf t"'
+
+    on-failure:
+      - write: 'MockSSH: Supported usage: username <username> password <password>'
