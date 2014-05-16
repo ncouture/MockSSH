@@ -89,10 +89,22 @@ class PasswordPromptingCommand(SSHCommand):
         self.validate_password(line.strip())
 
     def validate_password(self, password):
-        if password == self.valid_password:
-            [func(self) for func in self.success_callbacks]
+        if str(password) == str(self.valid_password):
+            for action, param in self.success_callbacks:
+                if action == "write":
+                    self.protocol.writeln(param)
+                elif action == "set-prompt":
+                    self.protocol.prompt = param
+                elif action == "call":
+                    self.protocol.call_command(self.protocol.commands[param])
         else:
-            [func(self) for func in self.failure_callbacks]
+            for action, param in self.failure_callbacks:
+                if action == "write":
+                    self.protocol.writeln(param)
+                elif action == "set-prompt":
+                    self.protocol.prompt = param
+                elif action == "call":
+                    self.protocol.call_command(self.protocol.commands[param])
 
         self.protocol.password_input = False
         self.exit()
@@ -115,10 +127,114 @@ class ArgumentValidatingCommand(SSHCommand):
         return self
 
     def start(self):
-        if not tuple(self.args) == tuple(self.required_arguments):
-            [func(self) for func in self.failure_callbacks]
+        valid_args = True
+
+        if len(self.args) != len(self.required_arguments):
+            valid_args = False
         else:
-            [func(self) for func in self.success_callbacks]
+            for n, arg in enumerate(self.required_arguments):
+                if (arg != self.args[n] and arg != '*'):
+                    valid_args = False
+
+        if not valid_args:
+            for tup in self.failure_callbacks:
+                action = tup[0]
+                param = tup[1]
+                if action == "write":
+                    self.protocol.writeln(param)
+                elif action == "set-prompt":
+                    self.protocol.prompt = param
+                elif action == "call":
+                    self.protocol.call_command(self.protocol.commands[param])
+
+            self.exit()
+            return 
+
+        for tup in self.success_callbacks:
+            action = tup[0]
+            param = tup[1]
+            if action == 'prompt-match':
+                test, _action, cond_action = tup[1::]
+                r_execute = False
+                r_cond = False
+                kwd = test.keys()[0]
+                match = test[kwd]
+                r_action = _action.keys()[0]
+                r_param = _action[r_action]
+                if kwd == 'match':
+                    if match in self.protocol.prompt:
+                        r_execute = True
+                    else:
+                        r_cond = True
+                elif kwd == 'mismatch':
+                    if match not in self.protocol.prompt:
+                        r_execute = True
+                    else:
+                        r_cond = True
+                if r_execute:
+                    if r_action == 'write':
+                        self.protocol.writeln(r_param)
+                    elif r_action == 'set-prompt':
+                        self.protocol.prompt = r_param
+                    elif r_action == 'call-command':
+                        self.protocol.call_command(
+                            self.protocol.commands[r_param])
+                    else:
+                        raise MockSSHError('invalid prompt-match action')
+                elif r_cond and cond_action:
+                    if 'else' in cond_action:
+                        cond_action = cond_action['else']
+                    if 'write' in cond_action:
+                        self.protocol.writeln(cond_action['write'])
+                    elif 'set-prompt' in cond_action:
+                        self.protocol.prompt = cond_action['set-prompt']
+                    elif 'call-command' in cond_action:
+                        self.protocol.call_command(
+                            self.protocol.commands[
+                                cond_action['call-command']])
+
+            elif action == 'set-prompt-match':
+                match, r_action, cond_action = tup[1::]
+                r_execute = False
+                r_cond = False
+                if 'match' in match:
+                    if match['match'] in self.protocol.prompt:
+                        r_execute = True
+                    else:
+                        r_cond = True
+                elif 'mismatch' in match:
+                    if not match['mismatch'] in self.protocol.prompt:
+                        r_execute = True
+                    else:
+                        r_cond = True
+                if r_execute:
+                    if 'write' in r_action:
+                        self.protocol.writeln(r_action['write'])
+                    if 'set-prompt' in r_action:
+                        self.protocol.prompt = r_action['set-prompt']
+                    if 'call-command' in r_action:
+                        self.protocol.call_command(
+                            self.protocol.commands[r_action['call-command']])
+                elif r_cond and cond_action:
+                    if 'else' in cond_action:
+                        cond_action = cond_action['else']
+                    if 'write' in cond_action:
+                        self.protocol.writeln(cond_action['write'])
+                    elif 'set-prompt' in cond_action:
+                        self.protocol.prompt = cond_action['set-prompt']
+                    elif 'call-command' in cond_action:
+                        self.protocol.call_command(
+                            self.protocol.commands[
+                                cond_action['call-command']])
+            elif action == "write":
+                self.protocol.writeln(param)
+            elif action == "set-prompt":
+                self.protocol.prompt = param
+            elif action == "call-command":
+                self.protocol.call_command(self.protocol.commands[param])
+            else:
+                raise MockSSHError("invalid callback action %s" % action)
+
         self.exit()
 
 
@@ -419,6 +535,17 @@ def runServer(commands,
     reactor.listenTCP(port,
                       sshFactory,
                       interface=interface)
+
+    print "\nUsers:"
+    print "\n".join(
+        ["        {0:7} ({1})".format(k, v)
+         for k, v in users.iteritems()])
+    print "\nCommands:"
+    sys.stdout.write("        ")
+    print ", ".join(["{0}".format(k) for k in commands if not k == '_exit'])
+    print "\nListening on %s port %s...\n" % (interface, port)
+    print "ssh %s@%s -p %s\n" % (users.iterkeys().next(), interface, port)
+
     reactor.run()
 
 if __name__ == "__main__":
