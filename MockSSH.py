@@ -31,7 +31,8 @@ class SSHCommand(object):
     Misc:
       You can rewrite the shell prompt via protocol.prompt.
     """
-    def __init__(self, protocol, *args):
+    def __init__(self, protocol, name, *args):
+        self.name = name
         self.protocol = protocol
         self.args = args
         self.writeln = self.protocol.writeln
@@ -63,10 +64,12 @@ class SSHCommand(object):
 
 class PasswordPromptingCommand(SSHCommand):
     def __init__(self,
+                 name,
                  password,
                  password_prompt,
                  success_callbacks=[],
                  failure_callbacks=[]):
+        self.name = name
         self.valid_password = password
         self.password_prompt = password_prompt
         self.success_callbacks = success_callbacks
@@ -75,7 +78,7 @@ class PasswordPromptingCommand(SSHCommand):
         self.protocol = None  # protocol is set by __call__
 
     def __call__(self, protocol, *args):
-        SSHCommand.__init__(self, protocol, *args)
+        SSHCommand.__init__(self, protocol, self.name, *args)
         return self
 
     def start(self):
@@ -97,16 +100,18 @@ class PasswordPromptingCommand(SSHCommand):
 
 class ArgumentValidatingCommand(SSHCommand):
     def __init__(self,
+                 name,
                  success_callbacks,
                  failure_callbacks,
                  *args):
+        self.name = name
         self.success_callbacks = success_callbacks
         self.failure_callbacks = failure_callbacks
-        self.required_arguments = args
+        self.required_arguments = [name] + list(args)
         self.protocol = None  # set in __call__
 
     def __call__(self, protocol, *args):
-        SSHCommand.__init__(self, protocol, *args)
+        SSHCommand.__init__(self, protocol, self.name, *args)
         return self
 
     def start(self):
@@ -228,9 +233,9 @@ class SSHProtocol(recvline.HistoricRecvLine):
     def initializeScreen(self):
         pass
 
-    def getCommand(self, cmd):
-        if cmd in self.commands:
-            return self.commands[cmd]
+    def getCommand(self, name):
+        if name in self.commands:
+            return self.commands[name]
 
     def keystrokeReceived(self, keyID, modifier):
         recvline.HistoricRecvLine.keystrokeReceived(self, keyID, modifier)
@@ -248,7 +253,7 @@ class SSHProtocol(recvline.HistoricRecvLine):
         self.terminal.nextLine()
 
     def call_command(self, cmd, *args):
-        obj = cmd(self, *args)
+        obj = cmd(self, cmd.name, *args)
         self.cmdstack.append(obj)
         obj.start()
 
@@ -320,6 +325,8 @@ class SSHRealm:
 
 
 class command_exit(SSHCommand):
+    name = "exit"
+
     def call(self):
         self.protocol.terminal.loseConnection()
 
@@ -377,6 +384,11 @@ def runServer(commands,
         raise SSHServerError("You must provide at least one "
                              "username/password combination "
                              "to run this SSH server.")
+
+    cmds = {}
+    for command in commands:
+        cmds[command.name] = command
+    commands = cmds
 
     for exit_cmd in ['_exit', 'exit']:
         if not exit_cmd in commands:
