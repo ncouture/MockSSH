@@ -53,22 +53,20 @@
            [required-input (one `nil (:required-input data))]
            [on-success (one `nil (:on-success data))]
            [on-failure (one `nil (:on-failure data))]]
-    (if (= type "prompt")
-      `(do
-        (prompting-command :name ~name
-                           :output ~output
-                           :required-input ~required-input
-                           :on-success ~on-success
-                           :on-failure ~on-failure))
-      (if (= type "output")
-        `(do
-          (output-command :name ~name
-                          :output ~output
-                          :args ~args
-                          :on-success ~on-success
-                          :on-failure ~on-failure))
-        (if (= type "callback")
-          (print))))))
+    (cond [(= type "prompt")
+           `(do
+             (prompting-command :name ~name
+                                :output ~output
+                                :required-input ~required-input
+                                :on-success ~on-success
+                                :on-failure ~on-failure))]
+          [(= type "output")
+           `(do
+             (output-command :name ~name
+                             :output ~output
+                             :args ~args
+                             :on-success ~on-success
+                             :on-failure ~on-failure))])))
 
 
 (defmacro output-command [&rest forms]
@@ -80,38 +78,38 @@
            [on-success (one `nil (:on-success data))]
            [on-failure (one `nil (:on-failure data))]]
     `((fn []
-        (if-not (cond [(= (type ~on-success) list)
-                       (= (len ~on-success) 2)])
+        (if-not (and (= (type ~on-success) list)
+                     (even? (len ~on-success)))
                 (raise (throw (MockSSH.MockSSHError
-                               "on-success argument must be a list of two"))))
-
-        (setv on-success-action (get ~on-success 0))
-        (setv on-success-parameter (get ~on-success 1))
-        
-        ;; on-failure arg example: ["write" "Password is 1234!"]
-        (if-not (= (type ~on-failure) list)
+                               "on-success argument must be an even list of strings"))))
+        (if-not (and (= (type ~on-failure) list)
+                     (even? (len ~on-failure)))
                 (raise (throw (MockSSH.MockSSHError
-                               "on-failure argument must be a list"))))
+                               "on-failure argument must be an even list of strings"))))
 
-        (setv on-failure-action (get ~on-failure 0))
-        (setv on-failure-parameter (get ~on-failure 1))
-
-        ;; --- configure commands requirements ---
         (setv success-callbacks [])
+        (setv it (iter ~on-success))
+        (for [callback (zip it it)]
+          (setv on-success-action (get callback 0))
+          (setv on-success-parameter (get callback 1))
+          (when (= on-success-action "write")
+            (do
+             (.append success-callbacks 
+                      (lambda (instance) 
+                        (.writeln instance
+                                  (bytes on-success-parameter)))))))
+
         (setv failure-callbacks [])
-        (when (= on-success-action "write")
-          (do
-           (.append success-callbacks 
-                    (lambda (instance) 
-                      (.writeln instance
-                                (bytes on-success-parameter))))))
-           
-        (when (= on-failure-action "write")
-          (do
-           (.append failure-callbacks 
-                    (lambda (instance) 
-                      (.writeln instance
-                                (bytes on-failure-parameter))))))
+        (setv it (iter ~on-failure))
+        (for [callback (zip it it)]
+          (setv on-failure-action (get callback 0))
+          (setv on-failure-parameter (get callback 1))
+          (when (= on-success-action "write")
+            (do
+             (.append failure-callbacks 
+                      (lambda (instance) 
+                        (.writeln instance
+                                  (bytes on-failure-parameter)))))))
       
         (MockSSH.ArgumentValidatingCommand ~name success-callbacks failure-callbacks ~@args)))))
 
