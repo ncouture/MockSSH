@@ -2,21 +2,19 @@
 (require mockssh.language)
 
 
-(setv commands [])
-
-(mock-ssh :users {"root" "1234"}
+(mock-ssh :users {"testuser" "1234"}
           :host "127.0.0.1"
           :port 2222
-          :prompt "mockssh $ "
+          :prompt "hostname>"
           :commands [
-  (command :name "su"
+  (command :name "en"
            :type "prompt"
            :output "Password: "
            :required-input "1234"
-           :on-success ["prompt" "mockssh # "]
+           :on-success ["prompt" "hostname#"]
            :on-failure ["write" "Pass is 1234..."])
   (command :name "ls"
            :type "output"
            :args ["-1"]
-           :on-success ["write" "bin\nREADME.txt"]
+           :on-success ["write" "bin\nREADME.txt" "write" "^H^H^H"]
            :on-failure ["write" "MockSSH: supported usage: ls -1"])])
