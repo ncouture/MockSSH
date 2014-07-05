@@ -3,7 +3,7 @@ MockSSH
 
 Mock an SSH server and define all commands it supports (Python, Twisted)
 
-MockSSH is based on [kippo](http://code.google.com/p/kippo/), an SSH honeypot.
+MockSSH is derived from [kippo](http://code.google.com/p/kippo/), an SSH honeypot.
 
 Purpose
 -------
@@ -12,12 +12,11 @@ in order to test task automation without having access to the actual servers.
 
 Implementing Commands
 ---------------------
-Since this is heavily based on kippo, you can consult its [source code](http://code.google.com/p/kippo/source/browse/trunk#trunk%2Fkippo%2Fcommands) to 
-see how different commands are implemented.
+There is no documentation on using MockSSH at this point. For now use the examples 
+from the examples/ directory as example.
 
-Requirements
-------------
-* Python >= 2.5
-* Twisted >= 8.0
-* PyCrypto
-* Zope Interface
+DSL
+---
+Some efforts were put in trying to come up with the simplest way possible to emulate SSH
+functionality. If this is a topic in your interests checkout the hy and yaml branches
+and submit your insights via github issues.
