@@ -50,7 +50,7 @@ command_conf = MockSSH.ArgumentValidatingCommand(
     [conf_output_error],
     *["t"])
 
-command_en = MockSSH.PasswordPromptingCommand(
+command_en = MockSSH.PromptingCommand(
     name='en',
     password='1234',
     password_prompt="Password: ",

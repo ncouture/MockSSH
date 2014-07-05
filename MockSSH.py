@@ -14,7 +14,7 @@ from twisted.internet import reactor
 from zope.interface import implements
 
 __all__ = ["SSHCommand",
-           "PasswordPromptingCommand",
+           "PromptingCommand",
            "ArgumentValidatingCommand",
            "runServer"]
 
@@ -62,7 +62,7 @@ class SSHCommand(object):
         pass
 
 
-class PasswordPromptingCommand(SSHCommand):
+class PromptingCommand(SSHCommand):
     def __init__(self,
                  name,
                  password,

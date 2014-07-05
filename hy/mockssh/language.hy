@@ -157,7 +157,7 @@
                       (.writeln instance
                                 (bytes on-failure-parameter))))))
       
-        (apply MockSSH.PasswordPromptingCommand []
+        (apply MockSSH.PromptingCommand []
                {"name" ~name
                 "password" (bytes ~required-input)
                 "password_prompt" (bytes ~output)
