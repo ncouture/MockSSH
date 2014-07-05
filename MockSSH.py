@@ -7,7 +7,8 @@ import shlex
 
 from twisted.cred import portal, checkers
 from twisted.conch import avatar, recvline, interfaces as conchinterfaces
-from twisted.conch.ssh import factory, keys, session, userauth, connection
+from twisted.conch.ssh import (factory, keys, session, userauth,
+                               connection, transport)
 from twisted.conch.insults import insults
 from twisted.internet import reactor
 
@@ -212,6 +213,8 @@ class SSHProtocol(recvline.HistoricRecvLine):
         recvline.HistoricRecvLine.connectionMade(self)
         self.cmdstack = [SSHShell(self, self.prompt)]
 
+        transport = self.terminal.transport.session.conn.transport
+        transport.factory.sessions[transport.transport.sessionno] = self
         #p = self.terminal.transport.session.conn.transport.transport.getPeer()
         #self.client_ip = p.host
 
@@ -303,9 +306,12 @@ class SSHAvatar(avatar.ConchUser):
         return None
 
     def execCommand(self, protocol, cmd):
-        raise NotImplementedError
+        raise NotImplemented
 
     def closed(self):
+        pass
+
+    def eofReceived(self):
         pass
 
 
@@ -322,6 +328,60 @@ class SSHRealm:
                 avatarId, self.prompt, self.commands), lambda: None
         else:
             raise Exception("No supported interfaces found.")
+
+
+class SSHTransport(transport.SSHServerTransport):
+
+    hadVersion = False
+
+    def connectionMade(self):
+        print 'New connection: %s:%s (%s:%s) [session: %d]' % \
+            (self.transport.getPeer().host, self.transport.getPeer().port,
+             self.transport.getHost().host, self.transport.getHost().port,
+             self.transport.sessionno)
+        self.interactors = []
+        self.ttylog_open = False
+        transport.SSHServerTransport.connectionMade(self)
+
+    def sendKexInit(self):
+        # Don't send key exchange prematurely
+        if not self.gotVersion:
+            return
+        transport.SSHServerTransport.sendKexInit(self)
+
+    def dataReceived(self, data):
+        transport.SSHServerTransport.dataReceived(self, data)
+
+    def ssh_KEXINIT(self, packet):
+        print 'Remote SSH version: %s' % (self.otherVersionString,)
+        return transport.SSHServerTransport.ssh_KEXINIT(self, packet)
+
+    # this seems to be the only reliable place of catching lost connection
+    def connectionLost(self, reason):
+        for i in self.interactors:
+            i.sessionClosed()
+        if self.transport.sessionno in self.factory.sessions:
+            del self.factory.sessions[self.transport.sessionno]
+        transport.SSHServerTransport.connectionLost(self, reason)
+
+
+class SSHFactory(factory.SSHFactory):
+    def __init__(self):
+        self.sessions = {}
+
+    def buildProtocol(self, addr):
+        # FIXME: try to mimic something real 100%
+        t = SSHTransport()
+        t.ourVersionString = "SSH-2.0-OpenSSH_5.1p1 Debian-5"
+        t.supportedPublicKeys = self.privateKeys.keys()
+
+        if not self.primes:
+            ske = t.supportedKeyExchanges[:]
+            ske.remove('diffie-hellman-group-exchange-sha1')
+            t.supportedKeyExchanges = ske
+
+        t.factory = self
+        return t
 
 
 class command_exit(SSHCommand):
@@ -394,7 +454,8 @@ def runServer(commands,
         if not exit_cmd in commands:
             commands[exit_cmd] = command_exit
 
-    sshFactory = factory.SSHFactory()
+    #sshFactory = factory.SSHFactory()
+    sshFactory = SSHFactory()
 
     sshFactory.portal = portal.Portal(
         SSHRealm(prompt=prompt, commands=commands)
@@ -416,9 +477,7 @@ def runServer(commands,
         'ssh-connection': connection.SSHConnection
     }
 
-    reactor.listenTCP(port,
-                      sshFactory,
-                      interface=interface)
+    reactor.listenTCP(port, sshFactory, interface=interface)
     reactor.run()
 
 if __name__ == "__main__":
