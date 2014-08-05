@@ -1,25 +1,49 @@
-#!/usr/bin/python
-#
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
+"""
+Mock an SSH server and define all commands it supports using Twisted Conch.
+"""
+
+__author__ = 'Nicolas Couture'
+__maintainer__ = 'Nicolas Couture'
+__email__ = 'nicolas.couture@gmail.com'
+__copyright__ = 'Copyright 2013-2014, Nicolas Couture'
+__version__ = '1.3'
+
+
+# Imports
 import sys
 import os
 import shlex
-
+from twisted.python import log
 from twisted.cred import portal, checkers
-from twisted.conch import avatar, recvline, interfaces as conchinterfaces
-from twisted.conch.ssh import (factory, keys, session, userauth,
-                               connection, transport)
+from twisted.conch import (avatar, recvline, interfaces as conchinterfaces)
+from twisted.conch.ssh import (factory, keys, session, userauth, connection,
+                               transport)
 from twisted.conch.insults import insults
 from twisted.internet import reactor
-
 from zope.interface import implements
 
-__all__ = ["SSHCommand",
-           "PromptingCommand",
-           "ArgumentValidatingCommand",
-           "runServer"]
+
+# Exports
+__all__ = (
+    "SSHCommand",
+    "PromptingCommand",
+    "ArgumentValidatingCommand",
+    "runServer"
+)
 
 
+# Exceptions
+class SSHServerError(Exception):
+    """Raised when an SSH server error is encountered"""
+
+class MockSSHError(Exception):
+    """Raised by MockSSH scripts."""
+
+
+# Classes
 class SSHCommand(object):
     """
     Instance attributes:
@@ -62,7 +86,6 @@ class SSHCommand(object):
     def resume(self):
         pass
 
-
 class PromptingCommand(SSHCommand):
     def __init__(self,
                  name,
@@ -98,7 +121,6 @@ class PromptingCommand(SSHCommand):
         self.protocol.password_input = False
         self.exit()
 
-
 class ArgumentValidatingCommand(SSHCommand):
     def __init__(self,
                  name,
@@ -121,7 +143,6 @@ class ArgumentValidatingCommand(SSHCommand):
         else:
             [func(self) for func in self.success_callbacks]
         self.exit()
-
 
 class SSHShell(object):
     def __init__(self, protocol, prompt):
@@ -199,7 +220,6 @@ class SSHShell(object):
         self.protocol.lineBufferIndex = 0
         self.protocol.terminal.nextLine()
         self.showPrompt()
-
 
 class SSHProtocol(recvline.HistoricRecvLine):
     def __init__(self, user, prompt, commands):
@@ -280,7 +300,6 @@ class SSHProtocol(recvline.HistoricRecvLine):
     def handle_CTRL_D(self):
         self.call_command(self.commands['_exit'])
 
-
 class SSHAvatar(avatar.ConchUser):
     implements(conchinterfaces.ISession)
 
@@ -314,7 +333,6 @@ class SSHAvatar(avatar.ConchUser):
     def eofReceived(self):
         pass
 
-
 class SSHRealm:
     implements(portal.IRealm)
 
@@ -328,7 +346,6 @@ class SSHRealm:
                 avatarId, self.prompt, self.commands), lambda: None
         else:
             raise Exception("No supported interfaces found.")
-
 
 class SSHTransport(transport.SSHServerTransport):
 
@@ -364,7 +381,6 @@ class SSHTransport(transport.SSHServerTransport):
             del self.factory.sessions[self.transport.sessionno]
         transport.SSHServerTransport.connectionLost(self, reason)
 
-
 class SSHFactory(factory.SSHFactory):
     def __init__(self):
         self.sessions = {}
@@ -383,7 +399,6 @@ class SSHFactory(factory.SSHFactory):
         t.factory = self
         return t
 
-
 class command_exit(SSHCommand):
     name = "exit"
 
@@ -391,6 +406,7 @@ class command_exit(SSHCommand):
         self.protocol.terminal.loseConnection()
 
 
+# Functions
 def getRSAKeys(keypath="."):
     if not os.path.exists(keypath):
         print "Could not find specified keypath (%s)" % keypath
@@ -421,17 +437,6 @@ def getRSAKeys(keypath="."):
         privateKeyString = file(privkey).read()
 
     return publicKeyString, privateKeyString
-
-
-class SSHServerError(Exception):
-    pass
-
-
-class MockSSHError(Exception):
-    """Raised by MockSSH scripts.
-    """
-    pass
-
 
 def runServer(commands,
               prompt="$ ",
