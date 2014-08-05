@@ -12,7 +12,6 @@ __copyright__ = 'Copyright 2013-2014, Nicolas Couture'
 __version__ = '1.3'
 
 
-# Imports
 import sys
 import os
 import shlex
@@ -26,7 +25,6 @@ from twisted.internet import reactor
 from zope.interface import implements
 
 
-# Exports
 __all__ = (
     "SSHCommand",
     "PromptingCommand",
@@ -35,15 +33,14 @@ __all__ = (
 )
 
 
-# Exceptions
 class SSHServerError(Exception):
     """Raised when an SSH server error is encountered"""
+
 
 class MockSSHError(Exception):
     """Raised by MockSSH scripts."""
 
 
-# Classes
 class SSHCommand(object):
     """
     Instance attributes:
@@ -86,6 +83,7 @@ class SSHCommand(object):
     def resume(self):
         pass
 
+
 class PromptingCommand(SSHCommand):
     def __init__(self,
                  name,
@@ -121,6 +119,7 @@ class PromptingCommand(SSHCommand):
         self.protocol.password_input = False
         self.exit()
 
+
 class ArgumentValidatingCommand(SSHCommand):
     def __init__(self,
                  name,
@@ -143,6 +142,7 @@ class ArgumentValidatingCommand(SSHCommand):
         else:
             [func(self) for func in self.success_callbacks]
         self.exit()
+
 
 class SSHShell(object):
     def __init__(self, protocol, prompt):
@@ -221,6 +221,7 @@ class SSHShell(object):
         self.protocol.terminal.nextLine()
         self.showPrompt()
 
+
 class SSHProtocol(recvline.HistoricRecvLine):
     def __init__(self, user, prompt, commands):
         self.user = user
@@ -235,8 +236,8 @@ class SSHProtocol(recvline.HistoricRecvLine):
 
         transport = self.terminal.transport.session.conn.transport
         transport.factory.sessions[transport.transport.sessionno] = self
-        #p = self.terminal.transport.session.conn.transport.transport.getPeer()
-        #self.client_ip = p.host
+# p = self.terminal.transport.session.conn.transport.transport.getPeer()
+# self.client_ip = p.host
 
         self.keyHandlers.update({
             '\x04':     self.handle_CTRL_D,
@@ -300,6 +301,7 @@ class SSHProtocol(recvline.HistoricRecvLine):
     def handle_CTRL_D(self):
         self.call_command(self.commands['_exit'])
 
+
 class SSHAvatar(avatar.ConchUser):
     implements(conchinterfaces.ISession)
 
@@ -333,6 +335,7 @@ class SSHAvatar(avatar.ConchUser):
     def eofReceived(self):
         pass
 
+
 class SSHRealm:
     implements(portal.IRealm)
 
@@ -346,6 +349,7 @@ class SSHRealm:
                 avatarId, self.prompt, self.commands), lambda: None
         else:
             raise Exception("No supported interfaces found.")
+
 
 class SSHTransport(transport.SSHServerTransport):
 
@@ -381,6 +385,7 @@ class SSHTransport(transport.SSHServerTransport):
             del self.factory.sessions[self.transport.sessionno]
         transport.SSHServerTransport.connectionLost(self, reason)
 
+
 class SSHFactory(factory.SSHFactory):
     def __init__(self):
         self.sessions = {}
@@ -398,6 +403,7 @@ class SSHFactory(factory.SSHFactory):
 
         t.factory = self
         return t
+
 
 class command_exit(SSHCommand):
     name = "exit"
@@ -438,6 +444,7 @@ def getRSAKeys(keypath="."):
 
     return publicKeyString, privateKeyString
 
+
 def runServer(commands,
               prompt="$ ",
               keypath=".",
@@ -456,10 +463,10 @@ def runServer(commands,
     commands = cmds
 
     for exit_cmd in ['_exit', 'exit']:
-        if not exit_cmd in commands:
+        if exit_cmd not in commands:
             commands[exit_cmd] = command_exit
 
-    #sshFactory = factory.SSHFactory()
+    # sshFactory = factory.SSHFactory()
     sshFactory = SSHFactory()
 
     sshFactory.portal = portal.Portal(

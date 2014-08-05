@@ -21,15 +21,20 @@ REQUIREMENTS = _get_requirements()
 
 class CleanCommand(Command):
     user_options = []
+
     def initialize_options(self):
         self.cwd = None
+
     def finalize_options(self):
         self.cwd = os.getcwd()
-    def run(self):
-        assert os.getcwd() == self.cwd, 'Must be in package root: %s' % self.cwd
-        os.system ('rm -rf ./build ./dist ./*.pyc ./*.tgz ./*.egg-info')
 
-desc = 'Mock an SSH server and define all commands it supports (Python, Twisted)'
+    def run(self):
+        assert os.getcwd() == self.cwd, 'Must be in package root: %s' % (
+            self.cwd)
+        os.system('rm -rf ./build ./dist ./*.pyc ./*.tgz ./*.egg-info')
+
+desc = ('Mock an SSH server and define all commands'
+        ' it supports (Python, Twisted)')
 long_desc = '''
 Mock an SSH server and define all commands it supports (Python, Twisted).
 
@@ -43,9 +48,9 @@ setup(
     version=__version__,
     author='Nicolas Couture',
     author_email='nicolas.couture@gmail.com',
-    #packages=find_packages(exclude=['tests']),
+    # packages=find_packages(exclude=['tests']),
     py_modules=['MockSSH'],
-    license='MIT', # Inherited from Twisted
+    license='MIT',  # Inherited from Twisted
     url='https://github.com/ncouture/MockSSH',
     description=desc,
     long_description=long_desc,
