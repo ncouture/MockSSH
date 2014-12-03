@@ -23,6 +23,7 @@ from twisted.conch.ssh import (factory, keys, session, userauth, connection,
 from twisted.conch.insults import insults
 from twisted.internet import reactor
 from zope.interface import implements
+from threading import Thread
 
 
 __all__ = (
@@ -30,6 +31,7 @@ __all__ = (
     "PromptingCommand",
     "ArgumentValidatingCommand",
     "runServer"
+    "threadedServer"
 )
 
 
@@ -445,11 +447,11 @@ def getRSAKeys(keypath="."):
     return publicKeyString, privateKeyString
 
 
-def runServer(commands,
-              prompt="$ ",
-              keypath=".",
-              interface='',
-              port=2222,
+def innerServer(commands,
+              prompt,
+              keypath,
+              interface,
+              port,
               **users):
 
     if not users:
@@ -490,9 +492,34 @@ def runServer(commands,
     }
 
     reactor.listenTCP(port, sshFactory, interface=interface)
+
+# TODO: refactor this stuff in a class
+def runServer(commands,
+              prompt="$ ",
+              keypath=".",
+              interface='',
+              port=2222,
+              **users):
+    innerServer(**locals())
     reactor.run()
+
+def threadedServer(commands,
+              prompt="$ ",
+              keypath=".",
+              interface='',
+              port=2222,
+              **users):
+    """
+    run a threaded version of MockSSH Server and return Thread to stop it
+    """
+    innerServer(**locals())
+    Thread(target=reactor.run, args=(False,))
+
+def threadedServerStop():
+    reactor.callFromThread(reactor.stop)
+
 
 if __name__ == "__main__":
     users = {'root': 'x'}
-    commands = {'exit': command_exit}
+    commands = [command_exit]
     runServer(commands, **users)
