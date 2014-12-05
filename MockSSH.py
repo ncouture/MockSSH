@@ -9,7 +9,7 @@ __author__ = 'Nicolas Couture'
 __maintainer__ = 'Nicolas Couture'
 __email__ = 'nicolas.couture@gmail.com'
 __copyright__ = 'Copyright 2013-2014, Nicolas Couture'
-__version__ = '1.3'
+__version__ = '1.4'
 
 
 import sys

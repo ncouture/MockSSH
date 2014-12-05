@@ -5,7 +5,7 @@ import os
 from setuptools import setup, Command
 
 # Be sure to keep this version and the one inside MockSSH.py in sync!
-__version__ = '1.3'
+__version__ = '1.4'
 
 # Names of required packages
 SETUP_PATH = os.path.dirname(os.path.abspath(__file__))
