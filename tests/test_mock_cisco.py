@@ -23,16 +23,16 @@ class MockCiscoTestCase(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         users = {'testadmin': 'x'}
-        MockSSH.threadedServer(commands,
-                               prompt="hostname>",
-                               interface="localhost",
-                               port=9999,
-                               **users)
+        MockSSH.startThreadedServer(commands,
+                                    prompt="hostname>",
+                                    interface="localhost",
+                                    port=9999,
+                                    **users)
 
     @classmethod
     def tearDownClass(cls):
         print "tearDownClass"
-        MockSSH.threadedServerStop()
+        MockSSH.stopThreadedServer()
 
     def test_wr_success(self):  # also tested by test_password_reset_success
         ssh = paramiko.SSHClient()

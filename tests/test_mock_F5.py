@@ -23,16 +23,17 @@ class MockF5TestCase(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         users = {'testadmin': 'x'}
-        MockSSH.threadedServer(commands,
-                               prompt="[root@hostname:Active] testadmin # ",
-                               interface="localhost",
-                               port=1025,
-                               **users)
+        MockSSH.startThreadedServer(
+            commands,
+            prompt="[root@hostname:Active] testadmin # ",
+            interface="localhost",
+            port=1025,
+            **users)
 
 #    @classmethod
 #    def tearDownClass(cls):
 #        print "tearDownClass"
-#        MockSSH.threadedServerStop()
+#        MockSSH.stopThreadedServer()
 
     def test_passwd_success(self):
         ssh = paramiko.SSHClient()

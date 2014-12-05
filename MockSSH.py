@@ -31,7 +31,8 @@ __all__ = (
     "PromptingCommand",
     "ArgumentValidatingCommand",
     "runServer",
-    "threadedServer"
+    "startThreadedServer",
+    "stopThreadedServer"
 )
 
 
@@ -447,7 +448,7 @@ def getRSAKeys(keypath="."):
     return publicKeyString, privateKeyString
 
 
-def innerServer(commands,
+def getSSHFactory(commands,
                 prompt,
                 keypath,
                 **users):
@@ -500,32 +501,32 @@ def runServer(commands,
               port=2222,
               **users):
 
-    sshFactory = innerServer(commands,
-                             prompt,
-                             keypath,
-                             **users)
+    sshFactory = getSSHFactory(commands,
+                               prompt,
+                               keypath,
+                               **users)
     reactor.listenTCP(port, sshFactory, interface=interface)
     reactor.run()
 
 
-def threadedServer(commands,
-                   prompt="$ ",
-                   keypath=".",
-                   interface='',
-                   port=2222,
-                   **users):
+def startThreadedServer(commands,
+                        prompt="$ ",
+                        keypath=".",
+                        interface='',
+                        port=2222,
+                        **users):
     """
     run a threaded version of MockSSH Server
     """
-    sshFactory = innerServer(commands,
-                             prompt,
-                             keypath,
-                             **users)
+    sshFactory = getSSHFactory(commands,
+                               prompt,
+                               keypath,
+                               **users)
     reactor.listenTCP(port, sshFactory, interface=interface)
     Thread(target=reactor.run, args=(False,)).start()
 
 
-def threadedServerStop():
+def stopThreadedServer():
     reactor.callFromThread(reactor.stop)
 
 
