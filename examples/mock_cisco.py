@@ -83,20 +83,6 @@ command_exit = MockSSH.ArgumentValidatingCommand(
     [exit_command_failure],
     *[])
 
-# The following commented class is also a valid way
-# to emulate the same command:
-
-#class command_exit(MockSSH.SSHCommand):
-#    name = "exit"
-#
-#    def start(self):
-#        if 'config' in self.protocol.prompt:
-#            self.protocol.prompt = "hostname#"
-#        else:
-#            self.protocol.call_command(self.protocol.commands['_exit'])
-#
-#        self.exit()
-
 
 #
 # command: wr
@@ -115,27 +101,12 @@ command_wr = MockSSH.ArgumentValidatingCommand(
     [wr_command_failure],
     *["m"])
 
-# The following commented class is also a valid way
-# to emulate the same command:
-
-#class command_wr(MockSSH.SSHCommand):
-#    name = 'wr'
-#
-#    def start(self):
-#        if not len(self.args) == 1 or not self.args[0] == 'm':
-#            self.writeln("MockSSH: Supported usage: wr m")
-#        else:
-#            self.writeln("Building configuration...")
-#            self.writeln("[OK]")
-#
-#        self.exit()
-
 
 class command_username(MockSSH.SSHCommand):
     name = 'username'
 
     def start(self):
-        if not 'config' in self.protocol.prompt:
+        if 'config' not in self.protocol.prompt:
             self.writeln(
                 "MockSSH: Please run the username command in `conf t'")
 
@@ -150,6 +121,7 @@ commands = [command_en,
             command_username,
             command_wr,
             command_exit]
+
 
 def main():
     users = {'testadmin': 'x'}
