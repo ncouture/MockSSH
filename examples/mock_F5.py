@@ -44,9 +44,10 @@ class command_passwd(MockSSH.SSHCommand):
         self.passwords.append(line.strip())
         self.callbacks.pop(0)()
 
+commands = [command_passwd]
+
 
 def main():
-    commands = [command_passwd]
     users = {'testadmin': 'x'}
 
     log.startLogging(sys.stderr)
