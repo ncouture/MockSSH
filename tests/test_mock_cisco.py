@@ -34,7 +34,7 @@ class MockCiscoTestCase(unittest.TestCase):
         print "tearDownClass"
         MockSSH.threadedServerStop()
 
-    def test_wr_success(self):
+    def test_wr_success(self):  # also tested by test_password_reset_success
         ssh = paramiko.SSHClient()
         ssh.set_missing_host_key_policy(paramiko.WarningPolicy())
         ssh.connect('127.0.0.1',
@@ -50,7 +50,7 @@ class MockCiscoTestCase(unittest.TestCase):
         stdout = recv_all(channel)
         self.assertTrue('[OK]' in stdout)
 
-    def test_wr_failure(self):
+    def test_wr_failure(self):  # also tested by test_password_reset_success
         ssh = paramiko.SSHClient()
         ssh.set_missing_host_key_policy(paramiko.WarningPolicy())
         ssh.connect('127.0.0.1',
@@ -67,3 +67,48 @@ class MockCiscoTestCase(unittest.TestCase):
         stdout = recv_all(channel)
         self.assertEqual(stdout, ('wr\r\nMockSSH: Supported '
                                   'usage: wr m\r\nhostname>'))
+
+    def test_password_reset_success(self):
+        ssh = paramiko.SSHClient()
+        ssh.set_missing_host_key_policy(paramiko.WarningPolicy())
+        ssh.connect('127.0.0.1',
+                    username='testadmin',
+                    password='x',
+                    port=9999)
+
+        channel = ssh.invoke_shell()
+        # read prompt
+        recv_all(channel)
+
+        channel.send('en\n')
+        stdout = recv_all(channel)
+        self.assertTrue('Password:' in stdout)
+
+        channel.send('1234\n')
+        stdout = recv_all(channel)
+        self.assertEqual(stdout, '\r\nhostname #')
+
+        channel.send('conf t\n')
+        stdout = recv_all(channel)
+        self.assertEqual(stdout,
+                         ('conf t\r\nEnter configuration commands, '
+                          'one per line. End with CNTL/Z\r\nhostname'
+                          '(config)#'))
+
+        channel.send('username remote password 1234\n')
+        stdout = recv_all(channel)
+        self.assertEqual(stdout,
+                         'username remote password 1234\r\nhostname(config)#')
+
+        channel.send('exit\n')
+        stdout = recv_all(channel)
+        self.assertEqual(stdout, 'exit\r\nhostname#')
+
+        channel.send('wr m\n')
+        stdout = recv_all(channel)
+        self.assertEqual(stdout, ('wr m\r\nBuilding configuration...\r\n[OK]'
+                                  '\r\nhostname#'))
+
+        channel.send('exit\n')
+        stdout = recv_all(channel)
+        self.assertEqual(stdout, 'exit\r\n\x1bc')
