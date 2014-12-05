@@ -1,14 +1,13 @@
 #!/usr/bin/which python
 #
 
-# this depends on the example mock_cisco.py to be running locally
-
 import paramiko
 import time
 import unittest
 import MockSSH
 
-from examples.mock_cisco import *
+from examples.mock_cisco import commands
+
 
 def recv_all(channel):
     while not channel.recv_ready():
@@ -25,10 +24,10 @@ class MockCiscoTestCase(unittest.TestCase):
     def setUpClass(cls):
         users = {'testadmin': 'x'}
         MockSSH.threadedServer(commands,
-                prompt="hostname>",
-                interface="localhost",
-                port=9999,
-                **users)
+                               prompt="hostname>",
+                               interface="localhost",
+                               port=9999,
+                               **users)
 
     @classmethod
     def tearDownClass(cls):
