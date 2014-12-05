@@ -30,7 +30,7 @@ __all__ = (
     "SSHCommand",
     "PromptingCommand",
     "ArgumentValidatingCommand",
-    "runServer"
+    "runServer",
     "threadedServer"
 )
 
@@ -448,9 +448,9 @@ def getRSAKeys(keypath="."):
 
 
 def innerServer(commands,
-              prompt,
-              keypath,
-              **users):
+                prompt,
+                keypath,
+                **users):
 
     if not users:
         raise SSHServerError("You must provide at least one "
@@ -491,6 +491,7 @@ def innerServer(commands,
 
     return sshFactory
 
+
 # TODO: refactor this stuff in a class
 def runServer(commands,
               prompt="$ ",
@@ -500,27 +501,29 @@ def runServer(commands,
               **users):
 
     sshFactory = innerServer(commands,
-              prompt,
-              keypath,
-              **users)
+                             prompt,
+                             keypath,
+                             **users)
     reactor.listenTCP(port, sshFactory, interface=interface)
     reactor.run()
 
+
 def threadedServer(commands,
-              prompt="$ ",
-              keypath=".",
-              interface='',
-              port=2222,
-              **users):
+                   prompt="$ ",
+                   keypath=".",
+                   interface='',
+                   port=2222,
+                   **users):
     """
     run a threaded version of MockSSH Server
     """
     sshFactory = innerServer(commands,
-              prompt,
-              keypath,
-              **users)
+                             prompt,
+                             keypath,
+                             **users)
     reactor.listenTCP(port, sshFactory, interface=interface)
     Thread(target=reactor.run, args=(False,)).start()
+
 
 def threadedServerStop():
     reactor.callFromThread(reactor.stop)
