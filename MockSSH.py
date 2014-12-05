@@ -23,13 +23,15 @@ from twisted.conch.ssh import (factory, keys, session, userauth, connection,
 from twisted.conch.insults import insults
 from twisted.internet import reactor
 from zope.interface import implements
+from threading import Thread
 
 
 __all__ = (
     "SSHCommand",
     "PromptingCommand",
     "ArgumentValidatingCommand",
-    "runServer"
+    "runServer",
+    "threadedServer"
 )
 
 
@@ -445,12 +447,10 @@ def getRSAKeys(keypath="."):
     return publicKeyString, privateKeyString
 
 
-def runServer(commands,
-              prompt="$ ",
-              keypath=".",
-              interface='',
-              port=2222,
-              **users):
+def innerServer(commands,
+                prompt,
+                keypath,
+                **users):
 
     if not users:
         raise SSHServerError("You must provide at least one "
@@ -489,10 +489,47 @@ def runServer(commands,
         'ssh-connection': connection.SSHConnection
     }
 
+    return sshFactory
+
+
+# TODO: refactor this stuff in a class
+def runServer(commands,
+              prompt="$ ",
+              keypath=".",
+              interface='',
+              port=2222,
+              **users):
+
+    sshFactory = innerServer(commands,
+                             prompt,
+                             keypath,
+                             **users)
     reactor.listenTCP(port, sshFactory, interface=interface)
     reactor.run()
 
+
+def threadedServer(commands,
+                   prompt="$ ",
+                   keypath=".",
+                   interface='',
+                   port=2222,
+                   **users):
+    """
+    run a threaded version of MockSSH Server
+    """
+    sshFactory = innerServer(commands,
+                             prompt,
+                             keypath,
+                             **users)
+    reactor.listenTCP(port, sshFactory, interface=interface)
+    Thread(target=reactor.run, args=(False,)).start()
+
+
+def threadedServerStop():
+    reactor.callFromThread(reactor.stop)
+
+
 if __name__ == "__main__":
     users = {'root': 'x'}
-    commands = {'exit': command_exit}
+    commands = [command_exit]
     runServer(commands, **users)

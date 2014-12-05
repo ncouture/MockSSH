@@ -145,14 +145,13 @@ class command_username(MockSSH.SSHCommand):
 
         self.exit()
 
+commands = [command_en,
+            command_conf,
+            command_username,
+            command_wr,
+            command_exit]
 
 def main():
-    commands = [command_en,
-                command_conf,
-                command_username,
-                command_wr,
-                command_exit]
-
     users = {'testadmin': 'x'}
 
     log.startLogging(sys.stderr)
