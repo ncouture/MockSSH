@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 
-from setuptools import setup, find_packages, Command
 import os
-import sys
+
+from setuptools import setup, Command
 
 # Be sure to keep this version and the one inside MockSSH.py in sync!
 __version__ = '1.3'
