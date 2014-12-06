@@ -6,34 +6,41 @@ MockSSH: Mock an SSH server and all commands it supports.
 
 Purpose
 -------
-This project was developed to emulate operating systems behind SSH servers 
-in order to test task automation without having access to the real servers.
+This project was developed to emulate operating systems
+behind SSH servers in order to test task automation without
+having access to the real servers.
 
-There has been user interest in using MockSSH to perform end-to-end unit tests
-against SSH servers and as such a threaded version of MockSSH server is 
-available as of version 1.4 (thanks to Claudio Mignanti).
+There has been user interest in using MockSSH to perform
+end-to-end unit tests against SSH servers and as such a
+threaded version of MockSSH server is available as of
+version 1.4 (thanks to Claudio Mignanti).
 
 
 MockSSH in Python
 -----------------
-Efforts were invested in making MockSSH as easy to use as I could make it.
+MockSSH aims to be as easy to use as possible.
 
-Refer to the mock_cisco.py and mock_F5.py in the examples/ directory to have
-a complete overview on how to use it.
+Refer to the mock_cisco.py and mock_F5.py in the examples/
+directory for an overview on how to use it.
 
 
 MockSSH in LISP
 ---------------
-As part of the efforts invested in simplifying the use of MockSSH, I wrote
-a DSL in HyLang (http://hylang.org/) that is available in the hy/ directory
-of this project.
+Efforts were invested in simplifying the use of MockSSH
+with [HyLang](http://hylang.org/).
 
-It effectively allows one to use MockSSH by writing something that is closer
-to a configuration file than a program.
+As a result a DSL is released with this project and
+resides in the *mocksshy/* directory.
 
-Consider the following Python implementation of a MockSSH server providing
-a *passwd* command:
+Using the DSL will allow you to use MockSSH by writing
+something that is closer to a configuration file than
+a program.
 
+For comparison, here are two MockSSH servers
+implementations providing the same functionality:
+
+
+*Python*
 ```python
 import MockSSH
 
@@ -58,16 +65,14 @@ commands = [command_passwd]
 MockSSH.runServer(commands,
                   prompt="hostname>",
                   interface='127.0.0.1',
-                  port=9999,
+                  port=2222,
                   **users)
 ```
 
-Compare with this example using the mockssh DSL that provides the very same
-functionality:
-
+*HyLang*
 ```clojure
 (import MockSSH)
-(require mockssh.language)
+(require mocksshy.language)
 
 
 (mock-ssh :users {"testuser" "1234"}
@@ -75,7 +80,7 @@ functionality:
           :port 2222
           :prompt "hostname>"
           :commands [
-  (command :name "en"
+  (command :name "passwd"
            :type "prompt"
            :output "Password: "
            :required-input "1234"
