@@ -2,7 +2,7 @@
 
 import os
 
-from setuptools import setup, Command
+from setuptools import setup, find_packages, Command
 
 __version__ = '1.4'
 
@@ -37,16 +37,29 @@ MockSSH is derived from kippo, an SSH honeypot.
 setup(
     name='MockSSH',
     version=__version__,
-    author='Nicolas Couture',
-    author_email='nicolas.couture@gmail.com',
-    # packages=find_packages(exclude=['tests']),
-    py_modules=['MockSSH'],
-    license='MIT',  # Inherited from Twisted
     url='https://github.com/ncouture/MockSSH',
+
     description=desc,
     long_description=long_desc,
+
+    author='Nicolas Couture',
+    author_email='nicolas.couture@gmail.com',
+
+    py_modules=['MockSSH'],
+    packages=find_packages(exclude=['tests', 'examples']),
+    package_data={
+        'mocksshy': ['*.hy'],
+    },
+
+    scripts = ['examples/mock_cisco.py',
+               'examples/mock_F5.py',
+               'examples/mock.hy'],
+
     install_requires=['Twisted', 'pycrypto', 'paramiko', 'pyasn1', 'hy'],
+
     cmdclass={
         'clean': CleanCommand
-    }
+    },
+
+    license='Other',
 )
