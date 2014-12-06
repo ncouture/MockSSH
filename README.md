@@ -96,4 +96,4 @@ cannot be restarted.
 
 Source
 ------
-MockSSH is derived from [kippo](http://code.google.com/p/kippo/), an SSH honeypot.
+MockSSH is derived from [kippo](https://github.com/desaster/kippo/), an SSH honeypot.
