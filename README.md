@@ -64,7 +64,8 @@ MockSSH.runServer(commands,
 
 Compare with this example using the mockssh DSL that provides the very same
 functionality:
-```clisp
+
+```clojure
 (import MockSSH)
 (require mockssh.language)
 
