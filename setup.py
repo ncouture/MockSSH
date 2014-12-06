@@ -4,7 +4,7 @@ import os
 
 from setuptools import setup, find_packages, Command
 
-__version__ = '1.4'
+__version__ = '1.4.1'
 
 class CleanCommand(Command):
     user_options = []
