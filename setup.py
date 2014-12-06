@@ -4,20 +4,7 @@ import os
 
 from setuptools import setup, Command
 
-# Be sure to keep this version and the one inside MockSSH.py in sync!
 __version__ = '1.4'
-
-# Names of required packages
-SETUP_PATH = os.path.dirname(os.path.abspath(__file__))
-RFILE_PATH = os.path.join(SETUP_PATH, 'requirements.txt')
-
-
-def _get_requirements(rfile=RFILE_PATH):
-    """Read the requirements from 'requirements.txt'"""
-    with open(rfile, 'r') as f:
-        return f.read().splitlines()
-REQUIREMENTS = _get_requirements()
-
 
 class CleanCommand(Command):
     user_options = []
@@ -31,16 +18,20 @@ class CleanCommand(Command):
     def run(self):
         assert os.getcwd() == self.cwd, 'Must be in package root: %s' % (
             self.cwd)
-        os.system('rm -rf ./build ./dist ./*.pyc ./*.tgz ./*.egg-info')
+        os.system('rm -rf ./build ./dist ./*.pyc'
+                  '       ./*.tgz ./*.egg-info ./private.key ./public.key')
 
-desc = ('Mock an SSH server and define all commands'
-        ' it supports (Python, Twisted)')
+desc = ('MockSSH: Mock an SSH server and all commands it supports.')
+
 long_desc = '''
-Mock an SSH server and define all commands it supports (Python, Twisted).
+MockSSH was developed to emulate operating systems behind SSH servers 
+in order to test task automation without having access to the real servers.
 
-MockSSH is derived from kippo, an SSH honeypot. This was developed to emulate
-different operating systems running SSH servers in order to test task
-automation without having access to the actual servers.
+There has been interest in using MockSSH to perform end-to-end unit tests
+against SSH servers and as such, a threaded version of MockSSH server is 
+available as of version 1.4 (thanks to Claudio Mignanti).
+
+MockSSH is derived from kippo, an SSH honeypot.
 '''
 
 setup(
@@ -54,7 +45,7 @@ setup(
     url='https://github.com/ncouture/MockSSH',
     description=desc,
     long_description=long_desc,
-    install_requires=REQUIREMENTS,
+    install_requires=['Twisted', 'pycrypto', 'paramiko', 'pyasn1', 'hy'],
     cmdclass={
         'clean': CleanCommand
     }
