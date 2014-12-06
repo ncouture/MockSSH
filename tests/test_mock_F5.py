@@ -30,10 +30,10 @@ class MockF5TestCase(unittest.TestCase):
             port=1025,
             **users)
 
-#    @classmethod
-#    def tearDownClass(cls):
-#        print "tearDownClass"
-#        MockSSH.stopThreadedServer()
+    @classmethod
+    def tearDownClass(cls):
+        print "tearDownClass"
+        MockSSH.stopThreadedServer()
 
     def test_passwd_success(self):
         ssh = paramiko.SSHClient()
