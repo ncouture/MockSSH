@@ -1,5 +1,9 @@
+#!/usr/bin/env hy
+
+; example use of the HyLang MockSSH DSL (mocksshy) 
+
 (import MockSSH)
-(require mockssh.language)
+(require mocksshy.language)
 
 
 (mock-ssh :users {"testuser" "1234"}
