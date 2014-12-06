@@ -1,7 +1,7 @@
 MockSSH
 =======
 
-MockSSH: Mock an SSH server and all commands it supports.
+Mock an SSH server and all commands it supports.
 
 
 Purpose
