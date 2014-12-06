@@ -64,7 +64,7 @@ MockSSH.runServer(commands,
 
 Compare with this example using the mockssh DSL that provides the very same
 functionality:
-```hy
+```hylang
 (import MockSSH)
 (require mockssh.language)
 
