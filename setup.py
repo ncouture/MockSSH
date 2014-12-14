@@ -4,7 +4,8 @@ import os
 
 from setuptools import setup, find_packages, Command
 
-__version__ = '1.4.1'
+__version__ = '1.4.2'
+
 
 class CleanCommand(Command):
     user_options = []
@@ -24,11 +25,11 @@ class CleanCommand(Command):
 desc = ('MockSSH: Mock an SSH server and all commands it supports.')
 
 long_desc = '''
-MockSSH was developed to emulate operating systems behind SSH servers 
+MockSSH was developed to emulate operating systems behind SSH servers
 in order to test task automation without having access to the real servers.
 
 There has been interest in using MockSSH to perform end-to-end unit tests
-against SSH servers and as such, a threaded version of MockSSH server is 
+against SSH servers and as such, a threaded version of MockSSH server is
 available as of version 1.4 (thanks to Claudio Mignanti).
 
 MockSSH is derived from kippo, an SSH honeypot.
@@ -51,9 +52,9 @@ setup(
         'mocksshy': ['*.hy'],
     },
 
-    scripts = ['examples/mock_cisco.py',
-               'examples/mock_F5.py',
-               'examples/mock.hy'],
+    scripts=['examples/mock_cisco.py',
+             'examples/mock_F5.py',
+             'examples/mock.hy'],
 
     install_requires=['Twisted', 'pycrypto', 'paramiko', 'pyasn1', 'hy'],
 
