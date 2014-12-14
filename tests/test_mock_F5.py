@@ -33,7 +33,7 @@ class MockF5TestCase(unittest.TestCase):
     @classmethod
     def tearDownClass(cls):
         print "tearDownClass"
-        MockSSH.stopThreadedServer()
+        #MockSSH.stopThreadedServer()
 
     def test_passwd_success(self):
         ssh = paramiko.SSHClient()
@@ -49,7 +49,6 @@ class MockF5TestCase(unittest.TestCase):
 
         channel.send('passwd remotex\n')
         stdout = recv_all(channel)
-        open('stdout', 'w').write(stdout)
         self.assertEqual(stdout, ('passwd remotex\r\nChanging password for user'
                                   ' remotex.\r\nNew BIG-IP password: '))
 

@@ -54,7 +54,7 @@ def passwd_write_password_to_transport(instance):
 command_passwd = MockSSH.PromptingCommand(
     name='passwd',
     password='1234',
-    password_prompt="Password: ",
+    prompt="Password: ",
     success_callbacks=[passwd_change_protocol_prompt],
     failure_callbacks=[passwd_write_password_to_transport])
 
@@ -95,10 +95,9 @@ As shown from the unit tests in the tests/ directory, it is possible to use
 a threaded MockSSH server to perform end-to-end unit tests against mocked
 SSH services.
 
-Note that this is a hack and may not be the right approach depending on your
-use case as only one Twisted reactor can run at the same time and reactors
-cannot be restarted.
+Note that this may not be the right approach depending on your use case as only
+one Twisted reactor can run at the same time and reactors cannot be restarted.
 
-Source
-------
+Credits
+-------
 MockSSH is derived from [kippo](https://github.com/desaster/kippo/), an SSH honeypot.

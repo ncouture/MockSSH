@@ -36,7 +36,7 @@ def en_write_password_to_transport(instance):
 command_en = MockSSH.PromptingCommand(
     name='en',
     password='1234',
-    password_prompt="Password: ",
+    prompt="Password: ",
     success_callbacks=[en_change_protocol_prompt],
     failure_callbacks=[en_write_password_to_transport])
 

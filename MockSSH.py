@@ -91,12 +91,12 @@ class PromptingCommand(SSHCommand):
     def __init__(self,
                  name,
                  password,
-                 password_prompt,
+                 prompt,
                  success_callbacks=[],
                  failure_callbacks=[]):
         self.name = name
         self.valid_password = password
-        self.password_prompt = password_prompt
+        self.prompt = prompt
         self.success_callbacks = success_callbacks
         self.failure_callbacks = failure_callbacks
 
@@ -107,7 +107,7 @@ class PromptingCommand(SSHCommand):
         return self
 
     def start(self):
-        self.write(self.password_prompt)
+        self.write(self.prompt)
         self.protocol.password_input = True
 
     def lineReceived(self, line):

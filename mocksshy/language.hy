@@ -160,6 +160,6 @@
         (apply MockSSH.PromptingCommand []
                {"name" ~name
                 "password" (bytes ~required-input)
-                "password_prompt" (bytes ~output)
+                "prompt" (bytes ~output)
                 "success_callbacks" success-callbacks
                 "failure_callbacks" failure-callbacks})))))
