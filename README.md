@@ -15,6 +15,13 @@ end-to-end unit tests against SSH servers and as such a
 threaded version of MockSSH server is available as of
 version 1.4 (thanks to Claudio Mignanti).
 
+Installation
+------------
+MockSSH depends on libraries that do not support Python 3k.
+```shell
+mkvirtualenv `which python2` mocksshenv
+pip install mockssh
+```
 
 MockSSH in Python
 -----------------
