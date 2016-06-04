@@ -19,7 +19,7 @@ Installation
 ------------
 MockSSH depends on libraries that do not support Python 3k.
 ```shell
-mkvirtualenv `which python2` mocksshenv
+mkvirtualenv -p `which python2` mocksshenv
 pip install mockssh
 ```
 
