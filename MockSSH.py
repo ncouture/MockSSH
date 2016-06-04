@@ -15,12 +15,13 @@ __version__ = '1.4.2'
 import sys
 import os
 import shlex
-from twisted.python import log
+
 from twisted.cred import portal, checkers
 from twisted.conch import (avatar, recvline, interfaces as conchinterfaces)
 from twisted.conch.ssh import (factory, keys, session, userauth, connection,
                                transport)
 from twisted.conch.insults import insults
+from twisted.conch.openssh_compat import primes
 from twisted.internet import reactor
 from zope.interface import implements
 from threading import Thread
@@ -394,10 +395,18 @@ class SSHFactory(factory.SSHFactory):
         self.sessions = {}
 
     def buildProtocol(self, addr):
-        # FIXME: try to mimic something real 100%
+        _modulis = '/etc/ssh/moduli', '/private/etc/moduli'
+
         t = SSHTransport()
-        t.ourVersionString = "SSH-2.0-OpenSSH_5.1p1 Debian-5"
+        t.ourVersionString = "SSH-2.0-OpenSSH_Mock MockSSH.py"
         t.supportedPublicKeys = self.privateKeys.keys()
+
+        for _moduli in _modulis:
+            try:
+                self.primes = primes.parseModuliFile(_moduli)
+                break
+            except IOError:
+                pass
 
         if not self.primes:
             ske = t.supportedKeyExchanges[:]

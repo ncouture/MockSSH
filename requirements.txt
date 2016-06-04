@@ -1,0 +1,3 @@
+hy==0.11.1
+paramiko==2.0.0
+Twisted==16.2.0
