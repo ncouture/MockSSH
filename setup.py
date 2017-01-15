@@ -24,10 +24,12 @@ CLASSIFIERS = [
     'Development Status :: 5 - Production/Stable',
     'Intended Audience :: Developers',
     'License :: OSI Approved :: BSD License',
-    'Programming Language :: Python',
+    'Programming Language :: Python :: 2.7',
+    'Framework :: Twisted',
     'Environment :: Console',
     'Operating System :: POSIX',
-    'Environment :: MacOS X',
+    'Operating System :: MacOS :: MacOS X',
+    'Operating System :: Microsoft :: Windows',
     'Topic :: Software Development :: Testing',
     'Topic :: System :: Emulators'
 ]
@@ -55,7 +57,7 @@ PACKAGES = find_packages(exclude=['tests', 'examples'])
 
 PACKAGE_DATA = {'mocksshy': ['*.hy']}
 
-INSTALL_REQUIRES = ['Twisted', 'pycrypto', 'paramiko', 'pyasn1', 'hy']
+INSTALL_REQUIRES = ['Twisted==16.7.0rc2', 'paramiko==2.1.1', 'hy==0.11.1']  #, 'pyasn1', 'hy']
 
 KEYWORDS = [
     'ssh server emulation', 'ssh server testing', 'mock ssh', 'script ssh'
