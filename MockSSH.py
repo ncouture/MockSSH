@@ -1,40 +1,26 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
+#
 """
-Mock an SSH server and define all commands it supports using Twisted Conch.
+MockSSH: Mock an SSH server and define all commands it supports.
 """
 
-__author__ = 'Nicolas Couture'
-__maintainer__ = 'Nicolas Couture'
-__email__ = 'nicolas.couture@gmail.com'
-__copyright__ = 'Copyright 2013-2014, Nicolas Couture'
-__version__ = '1.4.2'
-
-
-import sys
 import os
 import shlex
-
-from twisted.cred import portal, checkers
-from twisted.conch import (avatar, recvline, interfaces as conchinterfaces)
-from twisted.conch.ssh import (factory, keys, session, userauth, connection,
-                               transport)
-from twisted.conch.insults import insults
-from twisted.conch.openssh_compat import primes
-from twisted.internet import reactor
-from zope.interface import implements
+import sys
 from threading import Thread
 
+from twisted.conch import avatar, interfaces as conchinterfaces, recvline
+from twisted.conch.insults import insults
+from twisted.conch.openssh_compat import primes
+from twisted.conch.ssh import (connection, factory, keys, session, transport,
+                               userauth)
+from twisted.cred import checkers, portal
+from twisted.internet import reactor
+from zope.interface import implements
 
-__all__ = (
-    "SSHCommand",
-    "PromptingCommand",
-    "ArgumentValidatingCommand",
-    "runServer",
-    "startThreadedServer",
-    "stopThreadedServer"
-)
+__all__ = ("SSHCommand", "PromptingCommand", "ArgumentValidatingCommand",
+           "runServer", "startThreadedServer", "stopThreadedServer")
 
 
 class SSHServerError(Exception):
@@ -57,6 +43,7 @@ class SSHCommand(object):
     Misc:
       You can rewrite the shell prompt via protocol.prompt.
     """
+
     def __init__(self, protocol, name, *args):
         self.name = name
         self.protocol = protocol
@@ -89,6 +76,7 @@ class SSHCommand(object):
 
 
 class PromptingCommand(SSHCommand):
+
     def __init__(self,
                  name,
                  password,
@@ -125,11 +113,8 @@ class PromptingCommand(SSHCommand):
 
 
 class ArgumentValidatingCommand(SSHCommand):
-    def __init__(self,
-                 name,
-                 success_callbacks,
-                 failure_callbacks,
-                 *args):
+
+    def __init__(self, name, success_callbacks, failure_callbacks, *args):
         self.name = name
         self.success_callbacks = success_callbacks
         self.failure_callbacks = failure_callbacks
@@ -149,6 +134,7 @@ class ArgumentValidatingCommand(SSHCommand):
 
 
 class SSHShell(object):
+
     def __init__(self, protocol, prompt):
         self.protocol = protocol
         self.protocol.prompt = prompt
@@ -167,6 +153,7 @@ class SSHShell(object):
             self.showPrompt()
 
     def runCommand(self):
+
         def runOrPrompt():
             if len(self.cmdpending):
                 self.runCommand()
@@ -227,6 +214,7 @@ class SSHShell(object):
 
 
 class SSHProtocol(recvline.HistoricRecvLine):
+
     def __init__(self, user, prompt, commands):
         self.user = user
         self.prompt = prompt
@@ -240,14 +228,14 @@ class SSHProtocol(recvline.HistoricRecvLine):
 
         transport = self.terminal.transport.session.conn.transport
         transport.factory.sessions[transport.transport.sessionno] = self
-# p = self.terminal.transport.session.conn.transport.transport.getPeer()
-# self.client_ip = p.host
+        # p = self.terminal.transport.session.conn.transport.transport.getPeer()
+        # self.client_ip = p.host
 
         self.keyHandlers.update({
-            '\x04':     self.handle_CTRL_D,
-            '\x15':     self.handle_CTRL_U,
-            '\x03':     self.handle_CTRL_C,
-            })
+            '\x04': self.handle_CTRL_D,
+            '\x15': self.handle_CTRL_U,
+            '\x03': self.handle_CTRL_C,
+        })
 
     def lineReceived(self, line):
         if len(self.cmdstack):
@@ -270,7 +258,7 @@ class SSHProtocol(recvline.HistoricRecvLine):
 
     # Easier way to implement password input?
     def characterReceived(self, ch, moreCharactersComing):
-        self.lineBuffer[self.lineBufferIndex:self.lineBufferIndex+1] = [ch]
+        self.lineBuffer[self.lineBufferIndex:self.lineBufferIndex + 1] = [ch]
         self.lineBufferIndex += 1
 
         if not self.password_input:
@@ -319,9 +307,7 @@ class SSHAvatar(avatar.ConchUser):
         self.channelLookup.update({'session': session.SSHSession})
 
     def openShell(self, protocol):
-        serverProtocol = insults.ServerProtocol(SSHProtocol,
-                                                self,
-                                                self.prompt,
+        serverProtocol = insults.ServerProtocol(SSHProtocol, self, self.prompt,
                                                 self.commands)
 
         serverProtocol.makeConnection(protocol)
@@ -349,8 +335,8 @@ class SSHRealm:
 
     def requestAvatar(self, avatarId, mind, *interfaces):
         if conchinterfaces.IConchUser in interfaces:
-            return interfaces[0], SSHAvatar(
-                avatarId, self.prompt, self.commands), lambda: None
+            return interfaces[0], SSHAvatar(avatarId, self.prompt,
+                                            self.commands), lambda: None
         else:
             raise Exception("No supported interfaces found.")
 
@@ -391,6 +377,7 @@ class SSHTransport(transport.SSHServerTransport):
 
 
 class SSHFactory(factory.SSHFactory):
+
     def __init__(self):
         self.sessions = {}
 
@@ -457,11 +444,7 @@ def getRSAKeys(keypath="."):
     return publicKeyString, privateKeyString
 
 
-def getSSHFactory(commands,
-                prompt,
-                keypath,
-                **users):
-
+def getSSHFactory(commands, prompt, keypath, **users):
     if not users:
         raise SSHServerError("You must provide at least one "
                              "username/password combination "
@@ -480,17 +463,14 @@ def getSSHFactory(commands,
     sshFactory = SSHFactory()
 
     sshFactory.portal = portal.Portal(
-        SSHRealm(prompt=prompt, commands=commands)
-    )
+        SSHRealm(
+            prompt=prompt, commands=commands))
     sshFactory.portal.registerChecker(
-        checkers.InMemoryUsernamePasswordDatabaseDontUse(**users)
-    )
+        checkers.InMemoryUsernamePasswordDatabaseDontUse(**users))
 
     pubKeyString, privKeyString = getRSAKeys(keypath)
 
-    sshFactory.publicKeys = {
-        'ssh-rsa': keys.Key.fromString(data=pubKeyString)
-    }
+    sshFactory.publicKeys = {'ssh-rsa': keys.Key.fromString(data=pubKeyString)}
     sshFactory.privateKeys = {
         'ssh-rsa': keys.Key.fromString(data=privKeyString)
     }
@@ -509,11 +489,7 @@ def runServer(commands,
               interface='',
               port=2222,
               **users):
-
-    sshFactory = getSSHFactory(commands,
-                               prompt,
-                               keypath,
-                               **users)
+    sshFactory = getSSHFactory(commands, prompt, keypath, **users)
     reactor.listenTCP(port, sshFactory, interface=interface)
     reactor.run()
 
@@ -525,12 +501,9 @@ def startThreadedServer(commands,
                         port=2222,
                         **users):
     """
-    run a threaded version of MockSSH Server
+    Run a threaded MockSSH Server.
     """
-    sshFactory = getSSHFactory(commands,
-                               prompt,
-                               keypath,
-                               **users)
+    sshFactory = getSSHFactory(commands, prompt, keypath, **users)
     reactor.listenTCP(port, sshFactory, interface=interface)
     Thread(target=reactor.run, args=(False,)).start()
 
