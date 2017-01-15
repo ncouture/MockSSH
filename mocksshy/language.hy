@@ -18,26 +18,26 @@
      ~@body))
 
 
-(defmacro mock-ssh [&rest forms]                    
+(defmacro mock-ssh [&rest forms]
   (define [[data (group-map keyword? forms)]
            [users
             (one `{"root" "1234"}
                  (:users data))]
-           [host 
+           [host
             (one `"127.0.0.1"
                  (:host data))]
            [port
-            (one `2222 
+            (one `2222
                  (:port data))]
-           [prompt 
+           [prompt
             (one `"mockssh $ "
                  (:prompt data))]
-           [keypath 
-            (one `"." 
+           [keypath
+            (one `"."
                  (:keypath data))]
            [commands (one `nil (:commands data))]]
     `((fn []
-        (apply MockSSH.runServer [~commands 
+        (apply MockSSH.runServer [~commands
                                   (bytes ~prompt)
                                   ~keypath
                                   (bytes ~host)
@@ -94,8 +94,8 @@
           (setv on-success-parameter (get callback 1))
           (when (= on-success-action "write")
             (do
-             (.append success-callbacks 
-                      (lambda (instance) 
+             (.append success-callbacks
+                      (lambda (instance)
                         (.writeln instance
                                   (bytes on-success-parameter)))))))
 
@@ -106,11 +106,11 @@
           (setv on-failure-parameter (get callback 1))
           (when (= on-success-action "write")
             (do
-             (.append failure-callbacks 
-                      (lambda (instance) 
+             (.append failure-callbacks
+                      (lambda (instance)
                         (.writeln instance
                                   (bytes on-failure-parameter)))))))
-      
+
         (MockSSH.ArgumentValidatingCommand ~name success-callbacks failure-callbacks ~@args)))))
 
 
@@ -130,7 +130,7 @@
 
         (setv on-success-action (get ~on-success 0))
         (setv on-success-parameter (get ~on-success 1))
-        
+
         ;; on-failure arg example: ["write" "Password is 1234!"]
         (if-not (cond [(= (type ~on-failure) list)
                        (= (len ~on-failure) 2)])
@@ -139,24 +139,24 @@
 
         (setv on-failure-action (get ~on-failure 0))
         (setv on-failure-parameter (get ~on-failure 1))
-        
+
         ;; --- configure commands requirements ---
         (setv success-callbacks [])
         (setv failure-callbacks [])
         (when (= on-success-action "prompt")
           (do
            (.append success-callbacks
-                    (lambda (instance) 
+                    (lambda (instance)
                       (setv instance.protocol.prompt
                             (bytes on-success-parameter))))))
-           
+
         (when (= on-failure-action "write")
           (do
-           (.append failure-callbacks 
-                    (lambda (instance) 
+           (.append failure-callbacks
+                    (lambda (instance)
                       (.writeln instance
                                 (bytes on-failure-parameter))))))
-      
+
         (apply MockSSH.PromptingCommand []
                {"name" ~name
                 "password" (bytes ~required-input)
