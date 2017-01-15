@@ -18,7 +18,7 @@ COPYRIGHT = 'Copyright 2013-2016, Nicolas Couture'
 
 LICENSE = 'BSD'
 
-VERSION = '1.4.4'
+VERSION = '1.4.5'
 
 CLASSIFIERS = [
     'Development Status :: 5 - Production/Stable',

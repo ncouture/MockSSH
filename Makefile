@@ -30,6 +30,11 @@ lint:
 	@echo 'Checking code format...'
 	@$(YAPF) --diff --recursive MockSSH.py tests/ examples/ || (st=$$?; echo 'Please run "make fix" to correct the formatting errors.'; exit $$st)
 
+release: clean build upload_release
+
+upload_release:
+	-@$(PIP) install twine
+	@twine upload dist/*
 
 test: tests
 
