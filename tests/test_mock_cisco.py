@@ -1,11 +1,13 @@
 #!/usr/bin/which python
 #
 
-import paramiko
 import time
 import unittest
-import MockSSH
+import tempfile
+import shutil
 
+import MockSSH
+import paramiko
 from examples.mock_cisco import commands
 
 
@@ -19,28 +21,28 @@ def recv_all(channel):
 
 
 class MockCiscoTestCase(unittest.TestCase):
-
     @classmethod
     def setUpClass(cls):
         users = {'testadmin': 'x'}
-        MockSSH.startThreadedServer(commands,
-                                    prompt="hostname>",
-                                    interface="localhost",
-                                    port=9999,
-                                    **users)
+        cls.keypath = tempfile.mkdtemp()
+        MockSSH.startThreadedServer(
+            commands,
+            prompt="hostname>",
+            keypath=cls.keypath,
+            interface="localhost",
+            port=9999,
+            **users)
 
     @classmethod
     def tearDownClass(cls):
         print "tearDownClass"
         MockSSH.stopThreadedServer()
+        shutil.rmtree(cls.keypath)
 
     def test_wr_success(self):  # also tested by test_password_reset_success
         ssh = paramiko.SSHClient()
         ssh.set_missing_host_key_policy(paramiko.WarningPolicy())
-        ssh.connect('127.0.0.1',
-                    username='testadmin',
-                    password='x',
-                    port=9999)
+        ssh.connect('127.0.0.1', username='testadmin', password='x', port=9999)
 
         channel = ssh.invoke_shell()
         # read prompt
@@ -53,11 +55,12 @@ class MockCiscoTestCase(unittest.TestCase):
     def test_wr_failure(self):  # also tested by test_password_reset_success
         ssh = paramiko.SSHClient()
         ssh.set_missing_host_key_policy(paramiko.WarningPolicy())
-        ssh.connect('127.0.0.1',
-                    username='testadmin',
-                    password='x',
-                    port=9999,
-                    look_for_keys=False)
+        ssh.connect(
+            '127.0.0.1',
+            username='testadmin',
+            password='x',
+            port=9999,
+            look_for_keys=False)
 
         channel = ssh.invoke_shell()
         # read prompt
@@ -71,10 +74,7 @@ class MockCiscoTestCase(unittest.TestCase):
     def test_password_reset_success(self):
         ssh = paramiko.SSHClient()
         ssh.set_missing_host_key_policy(paramiko.WarningPolicy())
-        ssh.connect('127.0.0.1',
-                    username='testadmin',
-                    password='x',
-                    port=9999)
+        ssh.connect('127.0.0.1', username='testadmin', password='x', port=9999)
 
         channel = ssh.invoke_shell()
         # read prompt
@@ -90,10 +90,9 @@ class MockCiscoTestCase(unittest.TestCase):
 
         channel.send('conf t\n')
         stdout = recv_all(channel)
-        self.assertEqual(stdout,
-                         ('conf t\r\nEnter configuration commands, '
-                          'one per line. End with CNTL/Z\r\nhostname'
-                          '(config)#'))
+        self.assertEqual(stdout, ('conf t\r\nEnter configuration commands, '
+                                  'one per line. End with CNTL/Z\r\nhostname'
+                                  '(config)#'))
 
         channel.send('username remote password 1234\n')
         stdout = recv_all(channel)
@@ -112,3 +111,7 @@ class MockCiscoTestCase(unittest.TestCase):
         channel.send('exit\n')
         stdout = recv_all(channel)
         self.assertEqual(stdout, 'exit\r\n\x1bc')
+
+
+if __name__ == "__main__":
+    unittest.main()
