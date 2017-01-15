@@ -21,6 +21,7 @@ def recv_all(channel):
 
 
 class MockCiscoTestCase(unittest.TestCase):
+
     @classmethod
     def setUpClass(cls):
         users = {'testadmin': 'x'}

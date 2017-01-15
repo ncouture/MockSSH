@@ -44,6 +44,7 @@ class command_passwd(MockSSH.SSHCommand):
         self.passwords.append(line.strip())
         self.callbacks.pop(0)()
 
+
 commands = [command_passwd]
 
 
@@ -52,11 +53,13 @@ def main():
 
     log.startLogging(sys.stderr)
 
-    MockSSH.runServer(commands,
-                      prompt="[root@hostname:Active] testadmin # ",
-                      interface='127.0.0.1',
-                      port=9999,
-                      **users)
+    MockSSH.runServer(
+        commands,
+        prompt="[root@hostname:Active] testadmin # ",
+        interface='127.0.0.1',
+        port=9999,
+        **users)
+
 
 if __name__ == "__main__":
     try:

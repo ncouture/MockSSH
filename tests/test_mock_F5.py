@@ -21,6 +21,7 @@ def recv_all(channel):
 
 
 class MockF5TestCase(unittest.TestCase):
+
     @classmethod
     def setUpClass(cls):
         users = {'testadmin': 'x'}
@@ -50,9 +51,8 @@ class MockF5TestCase(unittest.TestCase):
 
         channel.send('passwd remotex\n')
         stdout = recv_all(channel)
-        self.assertEqual(stdout,
-                         ('passwd remotex\r\nChanging password for user'
-                          ' remotex.\r\nNew BIG-IP password: '))
+        self.assertEqual(stdout, ('passwd remotex\r\nChanging password for user'
+                                  ' remotex.\r\nNew BIG-IP password: '))
 
         channel.send('1234\n')
         stdout = recv_all(channel)

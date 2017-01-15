@@ -76,6 +76,7 @@ class SSHCommand(object):
 
 
 class PromptingCommand(SSHCommand):
+
     def __init__(self,
                  name,
                  password,
@@ -112,6 +113,7 @@ class PromptingCommand(SSHCommand):
 
 
 class ArgumentValidatingCommand(SSHCommand):
+
     def __init__(self, name, success_callbacks, failure_callbacks, *args):
         self.name = name
         self.success_callbacks = success_callbacks
@@ -132,6 +134,7 @@ class ArgumentValidatingCommand(SSHCommand):
 
 
 class SSHShell(object):
+
     def __init__(self, protocol, prompt):
         self.protocol = protocol
         self.protocol.prompt = prompt
@@ -150,6 +153,7 @@ class SSHShell(object):
             self.showPrompt()
 
     def runCommand(self):
+
         def runOrPrompt():
             if len(self.cmdpending):
                 self.runCommand()
@@ -188,10 +192,10 @@ class SSHShell(object):
 
         cmdclass = self.protocol.getCommand(cmd)
         if cmdclass:
-            print 'Command found: %s' % (line, )
+            print 'Command found: %s' % (line,)
             self.protocol.call_command(cmdclass, *rargs)
         else:
-            print 'Command not found: %s' % (line, )
+            print 'Command not found: %s' % (line,)
             if len(line):
                 self.protocol.writeln('MockSSH: %s: command not found' % cmd)
                 runOrPrompt()
@@ -210,6 +214,7 @@ class SSHShell(object):
 
 
 class SSHProtocol(recvline.HistoricRecvLine):
+
     def __init__(self, user, prompt, commands):
         self.user = user
         self.prompt = prompt
@@ -359,7 +364,7 @@ class SSHTransport(transport.SSHServerTransport):
         transport.SSHServerTransport.dataReceived(self, data)
 
     def ssh_KEXINIT(self, packet):
-        print 'Remote SSH version: %s' % (self.otherVersionString, )
+        print 'Remote SSH version: %s' % (self.otherVersionString,)
         return transport.SSHServerTransport.ssh_KEXINIT(self, packet)
 
     # this seems to be the only reliable place of catching lost connection
@@ -372,6 +377,7 @@ class SSHTransport(transport.SSHServerTransport):
 
 
 class SSHFactory(factory.SSHFactory):
+
     def __init__(self):
         self.sessions = {}
 
@@ -499,7 +505,7 @@ def startThreadedServer(commands,
     """
     sshFactory = getSSHFactory(commands, prompt, keypath, **users)
     reactor.listenTCP(port, sshFactory, interface=interface)
-    Thread(target=reactor.run, args=(False, )).start()
+    Thread(target=reactor.run, args=(False,)).start()
 
 
 def stopThreadedServer():
