@@ -317,7 +317,27 @@ class SSHAvatar(avatar.ConchUser):
         return None
 
     def execCommand(self, protocol, cmd):
-        raise NotImplemented
+        if cmd:
+            print 'CMD: %s' % cmd
+            self.client = TransportWrapper(protocol)
+
+            cmd_and_args = cmd.split()
+            cmd, args = cmd_and_args[0], cmd_and_args[1:]
+            #func = self.get_exec_func(cmd)
+            if cmd in self.commands:
+                if args == self.commands[cmd].required_arguments[1:]:
+                    print 'Command found (exec)', self.commands[cmd].required_arguments
+                    for x in self.commands[cmd].success_callbacks:
+                        x(WriteLn(self.client))
+                else:
+                    print "Command found but args not found (exec)"
+                    for x in self.commands[cmd].failure_callbacks:
+                        x(WriteLn(self.client))
+            else:
+                print "command not found: [%s] (exec)" %cmd
+
+            self.client.loseConnection()
+            protocol.session.conn.transport.expectedLoseConnection = 1
 
     def closed(self):
         pass
@@ -325,6 +345,36 @@ class SSHAvatar(avatar.ConchUser):
     def eofReceived(self):
         pass
 
+class WriteLn(object):
+    def __init__(self, client):
+        self.client = client
+
+    def writeln(self, data):
+        self.client.write(data)
+
+class TransportWrapper(object):
+
+    def __init__(self, p):
+        self.protocol = p
+        p.makeConnection(self)
+        self.closed = False
+
+    def write(self, data):
+        self.protocol.outReceived(data)
+        self.protocol.outReceived('\r\n')
+
+        # Mimic 'exit' for the shell test
+        if '\x00' in data:
+            self.loseConnection()
+
+    def loseConnection(self):
+        if self.closed:
+            return
+
+        self.closed = True
+        self.protocol.inConnectionLost()
+        self.protocol.outConnectionLost()
+        self.protocol.errConnectionLost()
 
 class SSHRealm:
     implements(portal.IRealm)
