@@ -36,7 +36,7 @@ class MockF5TestCase(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        print "tearDownClass"
+        print("tearDownClass")
         MockSSH.stopThreadedServer()
         shutil.rmtree(cls.keypath)
 

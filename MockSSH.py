@@ -64,12 +64,12 @@ class SSHCommand(object):
         self.protocol.cmdstack[-1].resume()
 
     def ctrl_c(self):
-        print 'Received CTRL-C, exiting..'
+        print('Received CTRL-C, exiting..')
         self.writeln('^C')
         self.exit()
 
     def lineReceived(self, line):
-        print 'INPUT: %s' % line
+        print('INPUT:', line)
 
     def resume(self):
         pass
@@ -142,7 +142,7 @@ class SSHShell(object):
         self.cmdpending = []
 
     def lineReceived(self, line):
-        print 'CMD: %s' % line
+        print('CMD:', line)
         for i in [x.strip() for x in line.strip().split(';')]:
             if not len(i):
                 continue
@@ -192,10 +192,10 @@ class SSHShell(object):
 
         cmdclass = self.protocol.getCommand(cmd)
         if cmdclass:
-            print 'Command found: %s' % (line,)
+            print('Command found:', line)
             self.protocol.call_command(cmdclass, *rargs)
         else:
-            print 'Command not found: %s' % (line,)
+            print('Command not found:', line)
             if len(line):
                 self.protocol.writeln('MockSSH: %s: command not found' % cmd)
                 runOrPrompt()
@@ -346,10 +346,10 @@ class SSHTransport(transport.SSHServerTransport):
     hadVersion = False
 
     def connectionMade(self):
-        print 'New connection: %s:%s (%s:%s) [session: %d]' % \
+        print('New connection: %s:%s (%s:%s) [session: %d]' % \
             (self.transport.getPeer().host, self.transport.getPeer().port,
              self.transport.getHost().host, self.transport.getHost().port,
-             self.transport.sessionno)
+             self.transport.sessionno))
         self.interactors = []
         self.ttylog_open = False
         transport.SSHServerTransport.connectionMade(self)
@@ -364,7 +364,7 @@ class SSHTransport(transport.SSHServerTransport):
         transport.SSHServerTransport.dataReceived(self, data)
 
     def ssh_KEXINIT(self, packet):
-        print 'Remote SSH version: %s' % (self.otherVersionString,)
+        print('Remote SSH version:', self.otherVersionString)
         return transport.SSHServerTransport.ssh_KEXINIT(self, packet)
 
     # this seems to be the only reliable place of catching lost connection
@@ -414,7 +414,7 @@ class command_exit(SSHCommand):
 # Functions
 def getRSAKeys(keypath="."):
     if not os.path.exists(keypath):
-        print "Could not find specified keypath (%s)" % keypath
+        print("Could not find specified keypath:", keypath)
         sys.exit(1)
 
     pubkey = os.path.join(keypath, "public.key")
