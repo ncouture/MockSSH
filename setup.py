@@ -57,7 +57,7 @@ PACKAGES = find_packages(exclude=['tests', 'examples'])
 
 PACKAGE_DATA = {'mocksshy': ['*.hy']}
 
-INSTALL_REQUIRES = ['Twisted==16.7.0rc2', 'paramiko==2.1.1', 'hy==0.11.1']
+INSTALL_REQUIRES = ['Twisted==22.10.0rc1', 'paramiko==2.1.1', 'hy==0.11.1']
 
 KEYWORDS = [
     'ssh server emulation', 'ssh server testing', 'mock ssh', 'script ssh'
