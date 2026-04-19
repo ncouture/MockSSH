@@ -1,20 +1,21 @@
-(import [collections [defaultdict]]
-        [functools [reduce]])
+(import collections [defaultdict])
+(import functools [reduce])
+(import hy.models [Keyword])
 
 
-(defn keyword? [k] (and (instance? (type :foo) k)
-                   (.startswith k (get :foo 0))))
+(defn keyword? [k]
+  (isinstance k Keyword))
 
 
 (defn one [default args]
   (cond
-    [(= (len args) 0) default]
-    [(= (len args) 1) (get args 0)]
-    [true (raise (TypeError "Too many args passed in."))]))
+    (= (len args) 0) default
+    (= (len args) 1) (get args 0)
+    True (raise (TypeError "Too many args passed in."))))
 
 
 (defn key-value-stream [key? stream]
-  (let [[key nil]]
+  (let [key None]
     (for [x stream]
       (if (key? x)
         (setv key x)
@@ -24,7 +25,7 @@
 (defn group-map [key? stream]
   (reduce
     (fn [accum v]
-      (let [[(, key value) v]]
+      (let [[key value] v]
         (.append (get accum key) value))
       accum)
     (key-value-stream key? stream)

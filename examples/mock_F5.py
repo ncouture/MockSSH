@@ -8,7 +8,7 @@ from twisted.python import log
 
 
 class command_passwd(MockSSH.SSHCommand):
-    name = 'passwd'
+    name = "passwd"
 
     def start(self):
         self.passwords = []
@@ -23,7 +23,7 @@ class command_passwd(MockSSH.SSHCommand):
             self.exit()
 
     def ask_again(self):
-        self.write('Retype new BIG-IP password: ')
+        self.write("Retype new BIG-IP password: ")
 
     def finish(self):
         self.protocol.password_input = False
@@ -35,12 +35,11 @@ class command_passwd(MockSSH.SSHCommand):
             self.exit()
         else:
             self.writeln("Changing password for user %s." % self.username)
-            self.writeln("passwd: all authentication tokens updated "
-                         "successfully.")
+            self.writeln("passwd: all authentication tokens updated successfully.")
             self.exit()
 
     def lineReceived(self, line):
-        print 'INPUT (passwd):', line
+        print("INPUT (passwd):", line)
         self.passwords.append(line.strip())
         self.callbacks.pop(0)()
 
@@ -49,21 +48,22 @@ commands = [command_passwd]
 
 
 def main():
-    users = {'testadmin': 'x'}
+    users = {"testadmin": "x"}
 
     log.startLogging(sys.stderr)
 
     MockSSH.runServer(
         commands,
         prompt="[root@hostname:Active] testadmin # ",
-        interface='127.0.0.1',
+        interface="127.0.0.1",
         port=9999,
-        **users)
+        **users,
+    )
 
 
 if __name__ == "__main__":
     try:
         main()
     except KeyboardInterrupt:
-        print "User interrupted"
+        print("User interrupted")
         sys.exit(1)
