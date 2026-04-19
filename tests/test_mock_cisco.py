@@ -21,16 +21,16 @@ def recv_all(channel):
 def cisco_server():
     users = {"testadmin": "x"}
     keypath = tempfile.mkdtemp()
-    server_port = MockSSH.startThreadedServer(
+    server = MockSSH.startThreadedServer(
         commands,
         prompt="hostname>",
         keypath=keypath,
         interface="127.0.0.1",
-        port=9999,
+        port=0,
         **users,
     )
-    yield server_port
-    MockSSH.stopThreadedServer(server_port)
+    yield server
+    MockSSH.stopThreadedServer(server)
     shutil.rmtree(keypath)
 
 
@@ -38,14 +38,28 @@ def cisco_server():
 def ssh_client(cisco_server):
     ssh = paramiko.SSHClient()
     ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    ssh.connect(
-        "127.0.0.1",
-        username="testadmin",
-        password="x",
-        port=9999,
-        allow_agent=False,
-        look_for_keys=False,
-    )
+
+    # Retry connection a few times
+    connected = False
+    for i in range(10):
+        try:
+            ssh.connect(
+                "127.0.0.1",
+                username="testadmin",
+                password="x",
+                port=cisco_server.getHost().port,
+                allow_agent=False,
+                look_for_keys=False,
+                timeout=10,
+            )
+            connected = True
+            break
+        except Exception:
+            time.sleep(0.5)
+
+    if not connected:
+        pytest.fail("Failed to connect to MockSSH server")
+
     yield ssh
     ssh.close()
 

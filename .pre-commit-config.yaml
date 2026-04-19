@@ -4,14 +4,17 @@ repos:
     hooks:
       - id: ruff
         args: [ --fix ]
+
       - id: ruff-format
+
   - repo: https://github.com/pre-commit/mirrors-mypy
     rev: v1.8.0
     hooks:
       - id: mypy
         additional_dependencies: ["Twisted>=25.5.0", "paramiko>=4.0.0", "cryptography>=46.0.0"]
         pass_filenames: false
-        args: ["MockSSH.py"]
+        args: ["src/MockSSH.py"]
+
   - repo: local
     hooks:
       - id: make-tests
@@ -20,6 +23,7 @@ repos:
         language: system
         pass_filenames: false
         always_run: true
+
   - repo: local
     hooks:
       - id: make-clean
