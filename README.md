@@ -10,14 +10,16 @@ This project was developed to emulate operating systems
 behind SSH servers in order to test task automation without
 having access to the real servers.
 
-There has been user interest in using MockSSH to perform
-end-to-end unit tests against SSH servers and as such a
-threaded version of MockSSH server is available as of
-version 1.4 (thanks to Claudio Mignanti).
+MockSSH has been fully modernized as of **version 2.0.0**,
+requiring Python 3.12+ and featuring a robust, type-safe
+architecture with modern testing and linting (pytest, Ruff).
+It provides a threaded version for performing end-to-end
+unit tests against mocked SSH services.
 
 Installation
 ------------
-MockSSH now requires Python 3.12+. It uses a modern `pyproject.toml` based build system.
+MockSSH requires Python 3.12+. It uses a modern `pyproject.toml` based build system.
+
 ```shell
 python3 -m venv .venv
 source .venv/bin/activate
@@ -28,7 +30,7 @@ Development
 -----------
 The project provides several development commands via `make`:
 
-To install the development dependencies (Ruff, mypy, pre-commit):
+To install the development dependencies (Ruff, mypy, pytest, pre-commit):
 ```shell
 pip install -e ".[dev]"
 ```
@@ -44,14 +46,19 @@ To run static type checking (using **mypy**):
 make typecheck
 ```
 
-To install the pre-commit hooks:
-```shell
-pre-commit install
-```
-
 To run the tests:
 ```shell
 make test
+```
+
+To build source and wheel distributions:
+```shell
+make build
+```
+
+To install the pre-commit hooks:
+```shell
+pre-commit install
 ```
 
 MockSSH in Python
@@ -151,6 +158,13 @@ MockSSH is integrated with the **Gemini CLI** to automate routine development ta
 *   **Autonomous Implementation**: Approved plans can be executed by Gemini to speed up development.
 
 Refer to `GEMINI.md` for more details on the automation workflows.
+
+Security
+--------
+MockSSH is designed for testing and emulation. When implementing custom commands:
+*   **Avoid Sensitive Logging**: Do not use `print()` or `log` to output raw user input or passwords.
+*   **Host Key Permissions**: Ensure your host keys (in `generated-keys/`) have restricted permissions (`chmod 600`).
+*   **Secret Management**: Do not store sensitive credentials (like Service Account keys) in the repository.
 
 License
 -------

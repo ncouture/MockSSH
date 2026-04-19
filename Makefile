@@ -36,7 +36,7 @@ lint:
 
 typecheck:
 	@echo 'Running static type checking...'
-	@$(MYPY) MockSSH.py
+	@$(MYPY) src/MockSSH.py
 
 release: clean build upload_release
 
@@ -49,12 +49,12 @@ test: tests
 tests: unit_tests clean_tests
 
 unit_tests: build
-	$(PYTHON) -m pytest tests/
+	PYTHONPATH=src $(PYTHON) -m pytest tests/
 
 clean: clean_build clean_tests clean_keys
 
 clean_build:
-	@rm -rf build dist *.egg-info .eggs
+	@rm -rf build dist *.egg-info .eggs .pytest_cache .mypy_cache .ruff_cache
 	@find . -type d -name __pycache__ -exec rm -rf "{}" +
 
 clean_keys:

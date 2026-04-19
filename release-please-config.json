@@ -1,0 +1,8 @@
+{
+  "releaseType": "python",
+  "handleGHRelease": true,
+  "bumpMinorPreMajor": false,
+  "extraFiles": [
+    "src/version.py"
+  ]
+}
