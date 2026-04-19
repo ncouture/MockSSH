@@ -97,3 +97,101 @@ def test_passwd_usage_failure(ssh_client):
     channel.send("passwd\n")
     stdout = recv_all(channel)
     assert "MockSSH: Supported usage: passwd <username>" in stdout
+
+
+def test_passwd_empty(ssh_client):
+    channel = ssh_client.invoke_shell()
+    recv_all(channel)
+
+    channel.send("passwd remotez\n")
+    recv_all(channel)
+    channel.send("\n")  # Empty new password
+    recv_all(channel)
+    channel.send("\n")  # Empty retype
+    stdout = recv_all(channel)
+    assert "passwd: all authentication tokens updated successfully." in stdout
+
+
+def test_multiple_passwd_calls(ssh_client):
+    channel = ssh_client.invoke_shell()
+    recv_all(channel)
+
+    # First call
+    channel.send("passwd user1\n")
+    recv_all(channel)
+    channel.send("pass1\n")
+    recv_all(channel)
+    channel.send("pass1\n")
+    stdout = recv_all(channel)
+    assert "passwd: all authentication tokens updated successfully." in stdout
+
+    # Second call
+    channel.send("passwd user2\n")
+    recv_all(channel)
+    channel.send("pass2\n")
+    recv_all(channel)
+    channel.send("pass2\n")
+    stdout = recv_all(channel)
+    assert "passwd: all authentication tokens updated successfully." in stdout
+
+
+def test_unknown_command(ssh_client):
+    channel = ssh_client.invoke_shell()
+    recv_all(channel)
+
+    channel.send("ls\n")
+    stdout = recv_all(channel)
+    assert "MockSSH: ls: command not found" in stdout
+
+
+def test_ctrl_c_during_passwd(ssh_client):
+    channel = ssh_client.invoke_shell()
+    recv_all(channel)
+
+    channel.send("passwd remotew\n")
+    recv_all(channel)
+    # Send CTRL-C (\x03)
+    channel.send("\x03")
+    stdout = recv_all(channel)
+    assert "^C" in stdout
+    # Should be back at prompt
+    assert "[root@hostname:Active] testadmin # " in stdout
+
+
+def test_passwd_mismatch_full(ssh_client):
+    channel = ssh_client.invoke_shell()
+    recv_all(channel)
+
+    channel.send("passwd mismatch\n")
+    recv_all(channel)
+    channel.send("pass1\n")
+    recv_all(channel)
+    channel.send("pass2\n")
+    stdout = recv_all(channel)
+    assert "Sorry, passwords do not match" in stdout
+    assert "passwd: Authentication token manipulation error" in stdout
+    assert "passwd: password unchanged" in stdout
+
+
+def test_passwd_too_many_args(ssh_client):
+    channel = ssh_client.invoke_shell()
+    recv_all(channel)
+
+    channel.send("passwd user1 user2\n")
+    stdout = recv_all(channel)
+    assert "MockSSH: Supported usage: passwd <username>" in stdout
+
+
+def test_passwd_with_semicolon(ssh_client):
+    channel = ssh_client.invoke_shell()
+    recv_all(channel)
+
+    channel.send("passwd user; passwd\n")
+    recv_all(channel)
+    channel.send("pass\n")
+    recv_all(channel)
+    channel.send("pass\n")
+    stdout = recv_all(channel)
+    assert "passwd: all authentication tokens updated successfully." in stdout
+    # The second passwd command should then run and fail with usage error
+    assert "MockSSH: Supported usage: passwd <username>" in stdout
