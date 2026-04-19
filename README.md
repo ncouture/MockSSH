@@ -143,6 +143,15 @@ Comprehensive documentation is available in the `docs/wiki/` directory,
 covering foundational concepts, architecture, custom command definition,
 and testing strategies.
 
+AI-Powered Automation
+---------------------
+MockSSH is integrated with the **Gemini CLI** to automate routine development tasks:
+*   **Automated Issue Triage**: New issues are automatically analyzed and labeled.
+*   **Intelligent Code Review**: Pull requests receive an initial automated review from Gemini.
+*   **Autonomous Implementation**: Approved plans can be executed by Gemini to speed up development.
+
+Refer to `GEMINI.md` for more details on the automation workflows.
+
 License
 -------
 MockSSH is released under the **LGPL-3.0-or-later** license.

@@ -58,7 +58,8 @@ clean_build:
 	@find . -type d -name __pycache__ -exec rm -rf "{}" +
 
 clean_keys:
-	@rm -f id_ecdsa id_ed25519 id_rsa
+	@rm -vf id_ecdsa id_ed25519 id_rsa *.key
+	@if [ -d generated-keys ]; then find generated-keys -type f ! -name ".gitkeep" -exec echo "delete {} ..." \; -delete; fi
 
 clean_tests:
 	$(call _clean_tests)

@@ -12,3 +12,19 @@ repos:
         additional_dependencies: ["Twisted>=25.5.0", "paramiko>=4.0.0", "cryptography>=46.0.0"]
         pass_filenames: false
         args: ["MockSSH.py"]
+  - repo: local
+    hooks:
+      - id: make-tests
+        name: make tests
+        entry: make tests
+        language: system
+        pass_filenames: false
+        always_run: true
+  - repo: local
+    hooks:
+      - id: make-clean
+        name: make clean
+        entry: make clean
+        language: system
+        pass_filenames: false
+        always_run: true
