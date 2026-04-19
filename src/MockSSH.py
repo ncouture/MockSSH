@@ -30,6 +30,7 @@ from twisted.conch.ssh import connection, factory, keys, session, transport, use
 from twisted.cred import checkers, portal
 from twisted.internet import reactor
 from zope.interface import implementer
+from twisted.python import log
 
 __all__ = (
     "SSHCommand",
@@ -420,7 +421,6 @@ class SSHTransport(transport.SSHServerTransport):
         transport.SSHServerTransport.dataReceived(self, data)
 
     def ssh_KEXINIT(self, packet: bytes) -> Any:
-        from twisted.python import log
         from twisted.conch.ssh.common import getNS
 
         log.msg("Remote SSH version: %r" % self.otherVersionString)
@@ -572,13 +572,25 @@ def getSSHFactory(commands: Any, prompt: str, keypath: str, **users: Any) -> SSH
     # Use our custom SSHFactory
     sshFactory = SSHFactory()
 
-    from twisted.python import log
-
     log.msg("Created SSHFactory: %s" % sshFactory)
+
     sshFactory.portal = portal.Portal(SSHRealm(prompt=prompt, commands=commands))  # type: ignore
 
-    b_users = {u: p.encode("utf-8") if isinstance(p, str) else p for u, p in users.items()}
-    sshFactory.portal.registerChecker(checkers.InMemoryUsernamePasswordDatabaseDontUse(**b_users))  # type: ignore[arg-type]
+    encoded_credentials = {}
+    for username, password in users.items():
+        if isinstance(password, str):
+            # Convert standard strings to byte strings
+            encoded_credentials[username] = password.encode("utf-8")
+        else:
+            # Leave it alone if it is already a byte string
+            encoded_credentials[username] = password
+
+    testing_db = checkers.InMemoryUsernamePasswordDatabaseDontUse(**encoded_credentials)
+
+    sshFactory.portal.registerChecker(testing_db)  # type: ignore[arg-type]
+
+    # b_users = {u: p.encode("utf-8") if isinstance(p, str) else p for u, p in users.items()}
+    # sshFactory.portal.registerChecker(checkers.InMemoryUsernamePasswordDatabaseDontUse(**b_users))  # type: ignore[arg-type]
 
     host_keys_data = getHostKeys(keypath)
 
