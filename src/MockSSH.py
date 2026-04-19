@@ -510,7 +510,7 @@ class command_exit(SSHCommand):
 def getHostKeys(keypath: str = ".") -> Dict[str, Any]:
     if not os.path.exists(keypath):
         print("Could not find specified keypath:", keypath)
-        sys.exit(1)
+        raise SSHServerError("Could not find specified keypath:", keypath)
 
     from cryptography.hazmat.primitives import serialization
     from cryptography.hazmat.primitives.asymmetric import ed25519, ec
