@@ -112,7 +112,7 @@ class PromptingCommand(SSHCommand):
 
     def __call__(self, protocol: Any, name: str, *args: Any) -> "PromptingCommand":
         new_instance = copy.copy(self)
-        SSHCommand.__init__(new_instance, protocol, name, name, *args)
+        SSHCommand.__init__(new_instance, protocol, name, *args)
         return new_instance
 
     def start(self) -> None:
