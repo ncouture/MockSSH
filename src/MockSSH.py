@@ -99,15 +99,14 @@ class PromptingCommand(SSHCommand):
         name: str,
         password: str,
         prompt: str,
-        success_callbacks: List[Callable[..., Any]] = [],
-        failure_callbacks: List[Callable[..., Any]] = [],
+        success_callbacks: Optional[List[Callable[..., Any]]] = None,
+        failure_callbacks: Optional[List[Callable[..., Any]]] = None,
     ) -> None:
         self.name = name
         self.valid_password = password
         self.prompt = prompt
-        self.success_callbacks = success_callbacks
-        self.failure_callbacks = failure_callbacks
-
+        self.success_callbacks = success_callbacks if success_callbacks is not None else []
+        self.failure_callbacks = failure_callbacks if failure_callbacks is not None else []
         self.protocol: Any = None  # protocol is set by __call__
 
     def __call__(self, protocol: Any, name: str, *args: Any) -> "PromptingCommand":
