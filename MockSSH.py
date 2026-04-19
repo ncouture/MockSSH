@@ -146,7 +146,7 @@ class ArgumentValidatingCommand(SSHCommand):
         self.required_arguments = [name] + list(args)
         self.protocol: Any = None  # set in __call__
 
-    def __call__(self, protocol: Any, *args: Any) -> "ArgumentValidatingCommand":
+    def __call__(self, protocol: Any, name: str, *args: Any) -> "ArgumentValidatingCommand":
         new_instance = copy.copy(self)
         SSHCommand.__init__(new_instance, protocol, self.name, *args)
         return new_instance
