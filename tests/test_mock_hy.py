@@ -1,4 +1,5 @@
 import subprocess
+import sys
 import time
 import paramiko
 import pytest
@@ -29,12 +30,16 @@ def test_hy_example():
     env["PYTHONPATH"] = f"src{os.pathsep}."
 
     # Run the example
+    popen_kwargs: dict = {}
+    if sys.platform != "win32":
+        popen_kwargs["preexec_fn"] = os.setsid
+
     process = subprocess.Popen(
         ["hy", "examples/mock.hy"],
         env=env,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
-        preexec_fn=os.setsid,
+        **popen_kwargs,
     )
 
     ssh = None
@@ -78,7 +83,10 @@ def test_hy_example():
     finally:
         if ssh:
             ssh.close()
-        # Terminate the process group
+        # Terminate the process group (POSIX) or the process (Windows)
         if process.poll() is None:
-            os.killpg(os.getpgid(process.pid), signal.SIGTERM)
+            if sys.platform != "win32":
+                os.killpg(os.getpgid(process.pid), signal.SIGTERM)
+            else:
+                process.terminate()
             process.wait()
