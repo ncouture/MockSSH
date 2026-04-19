@@ -5,6 +5,7 @@
 MockSSH: Mock an SSH server and define all commands it supports.
 """
 
+import copy
 import os
 import shlex
 import sys
@@ -110,8 +111,9 @@ class PromptingCommand(SSHCommand):
         self.protocol: Any = None  # protocol is set by __call__
 
     def __call__(self, protocol: Any, *args: Any) -> "PromptingCommand":
-        SSHCommand.__init__(self, protocol, self.name, *args)
-        return self
+        new_instance = copy.copy(self)
+        SSHCommand.__init__(new_instance, protocol, self.name, *args)
+        return new_instance
 
     def start(self) -> None:
         self.write(self.prompt)
@@ -145,8 +147,9 @@ class ArgumentValidatingCommand(SSHCommand):
         self.protocol: Any = None  # set in __call__
 
     def __call__(self, protocol: Any, *args: Any) -> "ArgumentValidatingCommand":
-        SSHCommand.__init__(self, protocol, self.name, *args)
-        return self
+        new_instance = copy.copy(self)
+        SSHCommand.__init__(new_instance, protocol, self.name, *args)
+        return new_instance
 
     def start(self) -> None:
         if not tuple(self.args) == tuple(self.required_arguments):

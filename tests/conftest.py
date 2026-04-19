@@ -1,7 +1,14 @@
+import hy  # noqa: F401
 import pytest
+
 from twisted.internet import reactor
 from threading import Thread
 import time
+
+
+def pytest_collect_file(file_path, parent):
+    if file_path.suffix == ".hy" and file_path.name.startswith("test_"):
+        return pytest.Module.from_parent(parent, path=file_path)
 
 
 @pytest.fixture(scope="session", autouse=True)
