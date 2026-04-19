@@ -58,4 +58,21 @@ To start a mock server (e.g., F5):
 -   **Host Key Generation:** The server automatically generates missing host keys in the `keypath` directory using the `getHostKeys` function.
 -   **Coding Style:** Enforced by **Ruff** and **mypy**. Use `make fix` to format and `make typecheck` to verify types. Pre-commit hooks should be installed for continuous validation.
 -   **Testing:** New commands or features should be verified with end-to-end tests in the `tests/` directory. The test suite is fully optimized and runs with **zero warnings**. Ensure `tests/__init__.py` exists for package discovery.
-discovery.
+
+## Gemini Automation
+
+This project integrates the **Gemini CLI** via GitHub Actions to automate common development workflows.
+
+### Workflows (.github/workflows/)
+-   **Gemini Dispatch**: Orchestrates the execution of Gemini tasks based on issue or pull request comments.
+-   **Gemini Review**: Performs automated code reviews on pull requests using the Interaction API.
+-   **Gemini Triage**: Automatically analyzes and labels new issues based on their content.
+-   **Gemini Scheduled Triage**: Periodically scans for untriaged issues to ensure they are properly labeled.
+-   **Gemini Plan Execution**: Executes approved implementation plans for feature requests or bug fixes.
+
+### Command Templates (.github/commands/)
+-   **gemini-invoke.toml**: General-purpose prompt for manual Gemini CLI invocations.
+-   **gemini-review.toml**: Specialized prompt for performing high-quality code reviews.
+-   **gemini-triage.toml**: Configuration for the issue triage and labeling logic.
+-   **gemini-plan-execute.toml**: Orchestration logic for autonomous task execution.
+
