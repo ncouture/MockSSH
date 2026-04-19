@@ -478,9 +478,6 @@ class SSHFactory(factory.SSHFactory):
             b"rsa-sha2-512",
         ]
 
-        print("DEBUG: buildProtocol supportedPublicKeys:", t.supportedPublicKeys)
-        print("DEBUG: buildProtocol supportedKeyExchanges:", t.supportedKeyExchanges)
-
         for _moduli in _modulis:
             try:
                 self.primes = primes.parseModuliFile(_moduli)
