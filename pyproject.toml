@@ -1,0 +1,77 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "MockSSH"
+version = "2.0"
+description = "MockSSH: Mock an SSH server and all commands it supports."
+readme = "README.md"
+authors = [
+    { name = "Nicolas Couture", email = "nicolas@stormvault.net" }
+]
+maintainers = [
+    { name = "Nicolas Couture", email = "nicolas@stormvault.net" }
+]
+license = "LGPL-3.0-or-later"
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3.12",
+    "Framework :: Twisted",
+    "Environment :: Console",
+    "Operating System :: POSIX",
+    "Operating System :: MacOS :: MacOS X",
+    "Operating System :: Microsoft :: Windows",
+    "Topic :: Software Development :: Testing",
+    "Topic :: System :: Emulators",
+]
+keywords = ["ssh server emulation", "ssh server testing", "mock ssh", "script ssh"]
+dependencies = [
+    "Twisted>=25.5.0",
+    "paramiko>=4.0.0",
+    "hy>=1.2.0",
+    "cryptography>=46.0.0",
+    "pycryptodome>=3.23.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "ruff>=0.15.11",
+    "mypy>=1.20.1",
+    "pre-commit>=4.5.1",
+    "pytest>=9.0.3",
+    "pytest-twisted>=1.14.3",
+]
+
+[tool.pytest.ini_options]
+addopts = "-p no:twisted"
+testpaths = ["tests"]
+filterwarnings = [
+    "ignore:.*TripleDES.*:cryptography.utils.CryptographyDeprecationWarning",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.mypy]
+python_version = "3.12"
+ignore_missing_imports = true
+check_untyped_defs = true
+disallow_untyped_defs = true
+
+[project.urls]
+Homepage = "https://github.com/ncouture/MockSSH"
+
+[tool.setuptools]
+py-modules = ["MockSSH"]
+packages = ["mocksshy"]
+script-files = [
+    "examples/mock_cisco.py",
+    "examples/mock_F5.py",
+    "examples/mock.hy"
+]
+
+[tool.setuptools.package-data]
+mocksshy = ["*.hy"]

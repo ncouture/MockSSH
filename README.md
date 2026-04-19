@@ -17,10 +17,41 @@ version 1.4 (thanks to Claudio Mignanti).
 
 Installation
 ------------
-MockSSH depends on libraries that do not support Python 3k.
+MockSSH now requires Python 3.12+. It uses a modern `pyproject.toml` based build system.
 ```shell
-mkvirtualenv -p `which python2` mocksshenv
-pip install mockssh
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -e .
+```
+
+Development
+-----------
+The project provides several development commands via `make`:
+
+To install the development dependencies (Ruff, mypy, pre-commit):
+```shell
+pip install -e ".[dev]"
+```
+
+To run the linters and format the code (using **Ruff**):
+```shell
+make fix
+make lint
+```
+
+To run static type checking (using **mypy**):
+```shell
+make typecheck
+```
+
+To install the pre-commit hooks:
+```shell
+pre-commit install
+```
+
+To run the tests:
+```shell
+make test
 ```
 
 MockSSH in Python
@@ -102,9 +133,20 @@ As shown from the unit tests in the tests/ directory, it is possible to use
 a threaded MockSSH server to perform end-to-end unit tests against mocked
 SSH services.
 
-Note that this may not be the right approach depending on your use case as only
-one Twisted reactor can run at the same time and reactors cannot be restarted.
+MockSSH now uses **pytest** and **pytest-twisted** to manage the Twisted
+reactor lifecycle cleanly. This allows the entire test suite to run in a
+single process.
+
+Documentation (Wiki)
+--------------------
+Comprehensive documentation is available in the `docs/wiki/` directory,
+covering foundational concepts, architecture, custom command definition,
+and testing strategies.
+
+License
+-------
+MockSSH is released under the **LGPL-3.0-or-later** license.
 
 Credits
 -------
-MockSSH is derived from [kippo](https://github.com/desaster/kippo/), an SSH honeypot.
+MockSSH was inspired by [kippo](https://github.com/desaster/kippo/), an SSH honeypot, and @HyLang

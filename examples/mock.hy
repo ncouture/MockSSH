@@ -3,7 +3,7 @@
 ; example use of the HyLang MockSSH DSL (mocksshy)
 
 (import MockSSH)
-(require mocksshy.language)
+(require mocksshy.language *)
 
 ; define parameters for printing
 (setv users {"testuser" "1234"})
@@ -13,8 +13,8 @@
 ; print server and connection info
 (print (.format "Starting SSH server port {1} of {0}..." host port))
 (print (.format "\nUsername: {0}\nPassword: {1}"
-                (name (first (first (.items users))))
-                (second (first (.items users)))))
+                (get (list (.keys users)) 0)
+                (get (list (.values users)) 0)))
 
 ; start server
 (mock-ssh :users users
