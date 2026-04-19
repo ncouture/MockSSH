@@ -107,7 +107,7 @@
         (when (not (and (isinstance ~on-failure list)
                         (= (len ~on-failure) 2)))
           (raise (MockSSH.MockSSHError
-                  "on-failure argument must be a list of at least two")))
+                  "on-failure argument must be a list of exactly two")))
 
         (setv on-failure-action (get ~on-failure 0))
         (setv on-failure-parameter (get ~on-failure 1))
