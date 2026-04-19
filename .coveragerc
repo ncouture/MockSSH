@@ -1,0 +1,17 @@
+[run]
+branch = True
+source = src
+
+[report]
+show_missing = True
+omit =
+    .nox/*
+    tests/*
+    examples/*
+    setup.py
+exclude_lines =
+    # Re-enable the standard pragma
+    pragma: NO COVER
+    # Ignore debug-only repr
+    def __repr__
+    if __name__ == .__main__.:

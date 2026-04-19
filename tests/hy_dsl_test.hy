@@ -4,6 +4,14 @@
 (import MockSSH)
 (require mocksshy.language *)
 
+(defn recv-all [channel]
+  (while (not (.recv_ready channel))
+    (time.sleep 0.1))
+  (setv stdout b"")
+  (while (.recv_ready channel)
+    (setv stdout (+ stdout (.recv channel 1024))))
+  (.decode stdout "utf-8"))
+
 (defn test-mock-hy-dsl []
   "Test the MockSSH DSL (mocksshy) from HyLang."
   (setv users {"testuser" "1234"})
@@ -20,47 +28,52 @@
              :on-success ["prompt" "hostname#"]
              :on-failure ["write" "Access denied"])])
 
-  ;; Use a unique port for this test
-  (setv port 2225)
+  ;; Use port 0 to let the OS assign an available port
   (setv server (MockSSH.startThreadedServer commands
                                             :prompt "hostname>"
-                                            :port port
+                                            :port 0
                                             #** users))
+  (setv port (. (.getHost server) port))
   (setv ssh (paramiko.SSHClient))
   (try
     (.set_missing_host_key_policy ssh (paramiko.AutoAddPolicy))
     
-    ;; Wait a bit for server to be ready
-    (time.sleep 1)
+    ;; Retry connection a few times
+    (setv connected False)
+    (for [i (range 10)]
+      (try
+        (.connect ssh "127.0.0.1" 
+                  :username "testuser" 
+                  :password "1234" 
+                  :port port 
+                  :allow_agent False 
+                  :look_for_keys False 
+                  :timeout 10)
+        (setv connected True)
+        (break)
+        (catch [e Exception]
+          (time.sleep 0.5))))
     
-    (.connect ssh "127.0.0.1" 
-              :username "testuser" 
-              :password "1234" 
-              :port port 
-              :allow_agent False 
-              :look_for_keys False 
-              :timeout 10)
+    (if (not connected)
+      (raise (Exception "Failed to connect to MockSSH server"))
+      None)
 
     (setv channel (.invoke_shell ssh))
-    (time.sleep 1)
-    (.recv channel 1024) ; Clear initial prompt
+    (recv-all channel) ; Clear initial prompt
 
     ;; Test 'ls -1' command
     (.send channel "ls -1\n")
-    (time.sleep 1)
-    (setv output (.decode (.recv channel 1024) "utf-8"))
+    (setv output (recv-all channel))
     (assert (in "file1" output))
     (assert (in "file2" output))
 
     ;; Test 'en' command with prompting
     (.send channel "en\n")
-    (time.sleep 1)
-    (setv output (.decode (.recv channel 1024) "utf-8"))
+    (setv output (recv-all channel))
     (assert (in "Password: " output))
     
     (.send channel "1234\n")
-    (time.sleep 1)
-    (setv output (.decode (.recv channel 1024) "utf-8"))
+    (setv output (recv-all channel))
     (assert (in "hostname#" output))
 
     (finally

@@ -13,16 +13,24 @@ def setup_keys():
     yield
 
 
+def recv_all(channel):
+    while not channel.recv_ready():
+        time.sleep(0.1)
+    stdout = b""
+    while channel.recv_ready():
+        stdout += channel.recv(1024)
+    return stdout.decode("utf-8")
+
+
 @pytest.mark.timeout(30)
 def test_hy_example():
     # Start hy examples/mock.hy as a subprocess
     env = os.environ.copy()
-    env["PYTHONPATH"] = "."
+    env["PYTHONPATH"] = f"src{os.pathsep}."
 
     # Run the example
-    # Use a different port if possible, but examples/mock.hy is hardcoded to 2222
     process = subprocess.Popen(
-        ["./.venv/bin/hy", "examples/mock.hy"],
+        ["hy", "examples/mock.hy"],
         env=env,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
@@ -31,16 +39,13 @@ def test_hy_example():
 
     ssh = None
     try:
-        # Wait for the server to start and generate keys
-        # This can take a while on some systems
-        time.sleep(5)
-
         # Connect with paramiko
         ssh = paramiko.SSHClient()
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
         # Try to connect multiple times in case it's slow
-        for i in range(5):
+        connected = False
+        for i in range(15):
             try:
                 ssh.connect(
                     "127.0.0.1",
@@ -51,22 +56,22 @@ def test_hy_example():
                     look_for_keys=False,
                     timeout=5,
                 )
+                connected = True
                 break
             except Exception:
-                if i == 4:
-                    raise
-                time.sleep(2)
+                time.sleep(1)
+
+        if not connected:
+            pytest.fail("Failed to connect to MockSSH subprocess")
 
         channel = ssh.invoke_shell()
-        time.sleep(1)
 
         # Initial recv to clear prompt
-        channel.recv(1024)
+        recv_all(channel)
 
         # Send a command
         channel.send("ls -1\n")
-        time.sleep(1)
-        stdout = channel.recv(1024).decode("utf-8")
+        stdout = recv_all(channel)
 
         assert "bin\r\nREADME.txt" in stdout
 

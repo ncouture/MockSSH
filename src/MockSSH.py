@@ -143,7 +143,7 @@ class ArgumentValidatingCommand(SSHCommand):
         self.name = name
         self.success_callbacks = success_callbacks
         self.failure_callbacks = failure_callbacks
-        self.required_arguments = [name] + list(args)
+        self.required_arguments = list(args)
         self.protocol: Any = None  # set in __call__
 
     def __call__(self, protocol: Any, name: str, *args: Any) -> "ArgumentValidatingCommand":
@@ -627,6 +627,7 @@ def startThreadedServer(
 ) -> Any:
     """
     Run a threaded MockSSH Server.
+    Pass port=0 to let the OS assign an available port.
     Returns the IListeningPort object.
     """
     sshFactory = getSSHFactory(commands, prompt, keypath, **users)

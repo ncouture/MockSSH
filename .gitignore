@@ -40,4 +40,13 @@ nosetests.xml
 venv
 
 .gemini/
-gha-creds-*.json
+.venv/
+.nox/
+.pytest_cache/
+.mypy_cache/
+*.heapsnapshot
+id_ecdsa
+id_ed25519
+id_rsa
+generated-keys/
+*.key

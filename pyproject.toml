@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "MockSSH"
-version = "2.0"
+version = "2.0.0"
 description = "MockSSH: Mock an SSH server and all commands it supports."
 readme = "README.md"
 authors = [
@@ -18,6 +18,7 @@ classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Developers",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Framework :: Twisted",
     "Environment :: Console",
     "Operating System :: POSIX",
@@ -33,6 +34,7 @@ dependencies = [
     "hy>=1.2.0",
     "cryptography>=46.0.0",
     "pycryptodome>=3.23.0",
+    "mcp[cli]>=1.27.0",
 ]
 
 [project.optional-dependencies]
@@ -43,6 +45,7 @@ dev = [
     "pytest>=9.0.3",
     "pytest-twisted>=1.14.3",
     "pytest-timeout>=2.3.1",
+    "coverage>=7.6.0",
 ]
 
 [tool.pytest.ini_options]
@@ -69,13 +72,11 @@ disallow_untyped_defs = true
 Homepage = "https://github.com/ncouture/MockSSH"
 
 [tool.setuptools]
+package-dir = {"" = "src"}
 py-modules = ["MockSSH"]
-packages = ["mocksshy"]
-script-files = [
-    "examples/mock_cisco.py",
-    "examples/mock_F5.py",
-    "examples/mock.hy"
-]
+
+[tool.setuptools.packages.find]
+where = ["src"]
 
 [tool.setuptools.package-data]
 mocksshy = ["*.hy"]
