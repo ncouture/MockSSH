@@ -35,7 +35,7 @@ def test_hy_example():
         popen_kwargs["preexec_fn"] = os.setsid
 
     process = subprocess.Popen(
-        ["hy", "examples/mock.hy"],
+        [sys.executable, "-m", "hy", "examples/mock.hy"],
         env=env,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
