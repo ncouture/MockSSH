@@ -67,7 +67,7 @@ MockSSH is undergoing a significant modernization phase (v2.0.0+). Key focus are
 1.  **Modularization:** Refactoring the monolithic `src/MockSSH.py` into a modern package structure.
 2.  **CI/CD:** Implementing robust GitHub Actions workflows for multi-version testing (Python 3.12, 3.13).
 3.  **Logging:** Replacing standard `print` statements with structured logging for better production-grade observability.
-4.  **Documentation:** Modernizing the wiki into a professional documentation site (Sphinx/MkDocs).
+4.  **Documentation:** Modernizing the wiki (architecture overview created, navigation links fixed).
 
 Refer to **`TODO.md`** for the complete roadmap and granular task tracking.
 
@@ -76,7 +76,7 @@ Refer to **`TODO.md`** for the complete roadmap and granular task tracking.
 A security audit (v2.0.0) identified several areas for improvement:
 - **Logging:** Avoid using `print()` for logging, as it can leak PII (passwords, commands) to stdout. A migration to structured logging is planned.
 - **Host Keys:** Generated host keys in `generated-keys/` must be restricted to owner-only permissions (`0600`).
-- **Secrets Management:** **NEVER** commit service account keys or secrets. The file `agentic-sa.json` is locally ignored and must be handled with extreme care.
+- **Secrets Management:** **NEVER** commit service account keys or secrets.
 
 ## Gemini Automation
 
