@@ -1,7 +1,7 @@
 MockSSH
 =======
 
-Mock an SSH server and all commands it supports.
+Mock SSH servers and all commands they support.
 
 
 Purpose
@@ -10,7 +10,7 @@ This project was developed to emulate operating systems
 behind SSH servers in order to test task automation without
 having access to the real servers.
 
-MockSSH has been fully modernized as of **version 2.0.0**,
+Finally Mock SSH has been fully modernized as of **version 2.0.0**,
 requiring Python 3.12+ and featuring a robust, type-safe
 architecture with modern testing and linting (pytest, Ruff).
 It provides a threaded version for performing end-to-end
@@ -61,7 +61,7 @@ To install the pre-commit hooks:
 pre-commit install
 ```
 
-MockSSH in Python
+Mock SSH in Python
 -----------------
 MockSSH aims to be as easy to use as possible.
 
@@ -69,7 +69,7 @@ Refer to the mock_cisco.py and mock_F5.py in the examples/
 directory for an overview on how to use it.
 
 
-MockSSH in LISP
+Mock SSH in LISP
 ---------------
 Efforts were invested in simplifying the use of MockSSH
 with [HyLang](http://hylang.org/).
@@ -77,11 +77,11 @@ with [HyLang](http://hylang.org/).
 As a result a DSL is released with this project and
 resides in the *mocksshy/* directory.
 
-Using the DSL will allow you to use MockSSH by writing
+Using the DSL will allow you to Mock SSH by writing
 something that is closer to a configuration file than
 a program.
 
-For comparison, here are two MockSSH servers
+For comparison, here are two ways to Mock SSH servers
 implementations providing the same functionality:
 
 
