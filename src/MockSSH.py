@@ -83,7 +83,7 @@ class SSHCommand(object):
         self.protocol.cmdstack[-1].resume()
 
     def ctrl_c(self) -> None:
-        print("Received CTRL-C, exiting..")
+        log.msg("Received CTRL-C, exiting..")
         self.writeln("^C")
         self.exit()
 
