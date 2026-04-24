@@ -14,12 +14,23 @@ def setup_keys():
     yield
 
 
-def recv_all(channel):
+def recv_all(channel, timeout: float = 10.0) -> str:
+    """Read all available data from *channel*, waiting up to *timeout* seconds."""
+    deadline = time.monotonic() + timeout
     while not channel.recv_ready():
+        if time.monotonic() > deadline:
+            raise TimeoutError("Timed out waiting for SSH channel data")
         time.sleep(0.1)
     stdout = b""
-    while channel.recv_ready():
-        stdout += channel.recv(1024)
+    while True:
+        if channel.recv_ready():
+            stdout += channel.recv(1024)
+        elif time.monotonic() > deadline:
+            break
+        else:
+            time.sleep(0.05)
+            if not channel.recv_ready():
+                break
     return stdout.decode("utf-8")
 
 
@@ -37,8 +48,8 @@ def test_hy_example():
     process = subprocess.Popen(
         [sys.executable, "-m", "hy", "examples/mock.hy"],
         env=env,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
         **popen_kwargs,
     )
 
