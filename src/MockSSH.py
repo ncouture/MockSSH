@@ -541,7 +541,9 @@ def getHostKeys(keypath: str = ".") -> Dict[str, Any]:
                 encryption_algorithm=serialization.NoEncryption(),
             )
 
-            with open(priv_file, "wb") as f:
+            # Use os.open to set permissions to 0600 (owner read/write only)
+            fd = os.open(priv_file, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+            with os.fdopen(fd, "wb") as f:
                 f.write(private_bytes)
             sys.stdout.write("Done.\n")
         else:
