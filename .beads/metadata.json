@@ -1,0 +1,10 @@
+{
+  "database": "dolt",
+  "backend": "dolt",
+  "dolt_mode": "server",
+  "dolt_server_host": "localhost",
+  "dolt_server_port": 3307,
+  "dolt_server_user": "root",
+  "dolt_database": "MockSSH",
+  "project_id": "78d1ac45-498a-442b-8d1c-42c1a6f9988d"
+}

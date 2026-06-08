@@ -50,3 +50,8 @@ id_ed25519
 id_rsa
 generated-keys/
 *.key
+
+# Beads / Dolt files (added by bd init)
+.dolt/
+*.db
+.beads-credential-key
