@@ -16,7 +16,7 @@ jobs:
     steps:
       - uses: googleapis/release-please-action@v4
         with:
-          token: ${{ secrets.RELEASE_TOKEN }}
+          token: ${{ secrets.RELEASE_PLEASE_TOKEN }}
           # optional. customize path to release-please-config.json
           config-file: release-please-config.json
           # optional. customize path to .release-please-manifest.json
