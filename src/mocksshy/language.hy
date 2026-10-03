@@ -1,8 +1,6 @@
 (import mocksshy.kwzip [group-map keyword? one])
 (import MockSSH)
-(import hy.models)
 (import mocksshy.builders :as builders)
-(import hy.errors [HyMacroExpansionError])
 
 
 (defmacro mock-ssh [#* forms]

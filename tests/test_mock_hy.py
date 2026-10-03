@@ -46,7 +46,12 @@ def test_hy_example():
         popen_kwargs["preexec_fn"] = os.setsid
 
     process = subprocess.Popen(
-        [sys.executable, "-m", "hy", "examples/mock.hy"],
+        [
+            sys.executable,
+            "-c",
+            # import through Hy's import hook; independent of `hy`'s runpy patching
+            "import hy, sys; sys.path.insert(0, 'examples'); import mock",
+        ],
         env=env,
         stdout=subprocess.DEVNULL,
         stderr=subprocess.DEVNULL,
